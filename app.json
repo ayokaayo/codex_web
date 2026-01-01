@@ -2,6 +2,7 @@
   "expo": {
     "name": "codex",
     "slug": "codex",
+    "scheme": "codex",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,9 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.codex.app"
     },
     "android": {
+      "package": "com.codex.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -30,6 +33,11 @@
       "expo-router",
       "expo-font",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "aaf3f050-1ddc-4215-b0c6-63ca72be4695"
+      }
+    }
   }
 }
