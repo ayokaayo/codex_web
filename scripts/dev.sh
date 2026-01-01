@@ -1,19 +1,23 @@
 #!/bin/bash
 
 # ============================================================================
-# CODEX SMART DEVELOPMENT STARTUP SCRIPT
+# CODEX DEVELOPMENT STARTUP SCRIPT
 # ============================================================================
 #
-# This script intelligently starts the development environment:
-# - Auto-builds apps on first run
-# - Instant startup on subsequent runs (2-3 seconds)
+# This script starts the Codex development environment with:
+# - Metro Bundler on port 8091
+# - QR code for physical device testing
+# - Tunnel mode for remote access
 # - Auto-starts Android emulator if needed
 # - Sets up port forwarding for Android (port 8091)
-# - Opens both iOS and Android automatically
 #
 # Port Configuration:
 # - Metro Bundler: 8091 (vs Kallax on 8081)
 # - Web Server: 8092 (vs Kallax on 8082)
+#
+# Usage:
+#   npm run dev          # Start with tunnel (QR code for physical devices)
+#   npm run dev:local    # Start in LAN mode (faster, same network only)
 #
 # ============================================================================
 
@@ -25,6 +29,9 @@ if [ "${NODE_ENV}" = "production" ]; then
   echo "   Production builds should use: expo build or eas build"
   exit 1
 fi
+
+# Determine connection mode (tunnel by default for QR codes)
+CONNECTION_MODE="${1:---tunnel}"
 
 echo "🚀 Starting Codex development environment..."
 echo ""
@@ -92,93 +99,7 @@ else
 fi
 
 # ============================================================================
-# PHASE 3: Detect Build Status
-# ============================================================================
-
-echo ""
-echo "🔍 Checking build status..."
-
-# Check if Android app is installed
-ANDROID_BUILT=false
-if [ "$ANDROID_AVAILABLE" = true ]; then
-  if $ANDROID_HOME/platform-tools/adb shell pm list packages 2>/dev/null | grep -q "com.codex.app"; then
-    ANDROID_BUILT=true
-    echo "   ✅ Android app already built"
-  else
-    echo "   📦 Android app needs building (first time)"
-  fi
-fi
-
-# Check if iOS app is built
-IOS_BUILT=false
-IOS_AVAILABLE=false
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  IOS_AVAILABLE=true
-
-  # Check if app exists in simulators
-  if xcrun simctl list apps booted 2>/dev/null | grep -q "com.codex.app"; then
-    IOS_BUILT=true
-    echo "   ✅ iOS app already built"
-  else
-    echo "   📦 iOS app needs building (first time)"
-  fi
-fi
-
-# ============================================================================
-# PHASE 4: Start Metro Bundler
-# ============================================================================
-
-echo ""
-echo "📦 Starting Metro Bundler on port 8091..."
-npx expo start --port 8091 --clear > /tmp/codex-dev.log 2>&1 &
-METRO_PID=$!
-
-# Wait for Metro to be ready
-echo "   ⏳ Waiting for Metro to initialize..."
-sleep 8
-echo "   ✅ Metro ready"
-
-# ============================================================================
-# PHASE 5: Launch Apps
-# ============================================================================
-
-echo ""
-BUILD_NEEDED=false
-
-# Launch Android
-if [ "$ANDROID_AVAILABLE" = true ]; then
-  if [ "$ANDROID_BUILT" = false ]; then
-    echo "🔨 Building Android app (this will take ~2 minutes)..."
-    BUILD_NEEDED=true
-    npx expo run:android >> /tmp/codex-dev.log 2>&1 &
-  else
-    echo "🤖 Launching Android app..."
-    $ANDROID_HOME/platform-tools/adb shell am force-stop com.codex.app 2>/dev/null || true
-    sleep 1
-    $ANDROID_HOME/platform-tools/adb shell monkey -p com.codex.app -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1
-    echo "   ✅ Android app launched"
-  fi
-fi
-
-# Launch iOS
-if [ "$IOS_AVAILABLE" = true ]; then
-  if [ "$IOS_BUILT" = false ]; then
-    echo "🔨 Building iOS app (this will take ~2 minutes)..."
-    BUILD_NEEDED=true
-    npx expo run:ios >> /tmp/codex-dev.log 2>&1 &
-  else
-    echo "🍎 Launching iOS app..."
-    # Boot default simulator if not running
-    xcrun simctl boot "iPhone" 2>/dev/null || true
-    sleep 2
-    # Launch the app
-    xcrun simctl launch booted com.codex.app > /dev/null 2>&1 || true
-    echo "   ✅ iOS app launched"
-  fi
-fi
-
-# ============================================================================
-# PHASE 6: User Feedback
+# PHASE 3: Start Development Server
 # ============================================================================
 
 echo ""
@@ -187,36 +108,24 @@ echo ""
 echo "✅ Codex development environment ready!"
 echo ""
 
-if [ "$BUILD_NEEDED" = true ]; then
-  echo "   ⏳ First-time builds in progress..."
-  echo "   This will take 2-3 minutes, then hot reload will be instant"
-  echo ""
-fi
-
-if [ "$IOS_AVAILABLE" = true ]; then
-  echo "📱 iOS Simulator: Connected"
-fi
-
 if [ "$ANDROID_AVAILABLE" = true ]; then
-  echo "🤖 Android Emulator: Connected"
+  echo "🤖 Android Emulator: Connected (port 8091)"
 fi
 
-echo "🔄 Hot Reload: Enabled"
 echo ""
-echo "📋 Metro: http://localhost:8091"
-echo "🌐 Web: http://localhost:8092"
-echo "📝 Logs: /tmp/codex-dev.log"
+echo "📋 Metro Bundler: http://localhost:8091"
+echo "🌐 Web Preview: http://localhost:8092"
+echo ""
+echo "📱 Physical Device Testing:"
+echo "   Scan the QR code below with Expo Go app"
+echo "   (Installing Expo Go from App Store/Play Store)"
+echo ""
+echo "💡 Can run alongside Kallax (port 8081) without conflicts!"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "💡 Tip: Subsequent runs will start in 2-3 seconds!"
-echo "💡 Can run alongside Kallax (port 8081) without conflicts!"
-echo ""
-echo "Press Ctrl+C to stop all processes"
+echo "🚀 Starting Expo with QR code..."
 echo ""
 
-# Keep Metro running and handle Ctrl+C
-trap "echo ''; echo '🛑 Stopping development environment...'; kill $METRO_PID 2>/dev/null || true; exit 0" INT TERM
-
-# Wait for Metro process
-wait $METRO_PID
+# Start Expo with tunnel mode for QR codes and physical devices
+exec npx expo start --port 8091 --clear $CONNECTION_MODE

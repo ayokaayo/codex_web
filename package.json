@@ -4,6 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "dev": "./scripts/dev.sh",
+    "dev:local": "./scripts/dev.sh --lan",
     "start": "expo start --port 8091",
     "android": "expo start --android --port 8091",
     "ios": "expo start --ios --port 8091",
