@@ -1,44 +1,70 @@
-import { Stack } from 'expo-router';
-import { useEffect } from 'react';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import '../global.css';
+import "../global.css";
+import { useEffect, useState } from "react";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
+// Prevent splash screen from hiding until fonts are loaded
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    // Add custom fonts here if needed
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  const [fontsLoaded, fontError] = useFonts({
+    "Cinzel-Regular": require("../assets/fonts/Cinzel-Regular.ttf"),
+    "Cinzel-SemiBold": require("../assets/fonts/Cinzel-SemiBold.ttf"),
+    "Cinzel-Bold": require("../assets/fonts/Cinzel-Bold.ttf"),
+    "EBGaramond-Regular": require("../assets/fonts/EBGaramond-Regular.ttf"),
+    "EBGaramond-Medium": require("../assets/fonts/EBGaramond-Medium.ttf"),
+    "EBGaramond-Italic": require("../assets/fonts/EBGaramond-Italic.ttf"),
+    "EBGaramond-Bold": require("../assets/fonts/EBGaramond-Bold.ttf"),
   });
 
   useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
+    async function prepare() {
+      if (fontsLoaded || fontError) {
+        await SplashScreen.hideAsync();
+        setAppIsReady(true);
+      }
     }
-  }, [loaded, error]);
+    prepare();
+  }, [fontsLoaded, fontError]);
 
-  if (!loaded && !error) {
+  if (!appIsReady) {
     return null;
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#f4511e',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}
-    >
-      <Stack.Screen
-        name="index"
-        options={{
-          title: 'Home',
-        }}
-      />
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: "#0A0A0F" },
+            animation: "fade",
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen
+            name="reading/[id]"
+            options={{
+              animation: "slide_from_bottom",
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name="paywall"
+            options={{
+              presentation: "modal",
+              animation: "slide_from_bottom",
+            }}
+          />
+        </Stack>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
