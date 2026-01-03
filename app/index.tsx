@@ -1,8 +1,8 @@
-import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image, StyleSheet } from "react-native";
+import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
-import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS, interpolateColor } from "react-native-reanimated";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { StarField } from "@/components/tarot/StarField";
@@ -34,6 +34,34 @@ export default function HomeScreen() {
 
   // Background opacity for fade effects
   const backgroundOpacity = useSharedValue(0);
+
+  // Input focus state for animated border
+  const inputFocusProgress = useSharedValue(0);
+
+  const inputAnimatedStyle = useAnimatedStyle(() => ({
+    borderColor: interpolateColor(
+      inputFocusProgress.value,
+      [0, 1],
+      ["rgba(26, 26, 36, 1)", "rgba(201, 169, 98, 0.8)"]
+    ),
+    shadowColor: "#C9A962",
+    shadowOpacity: inputFocusProgress.value * 0.25,
+    shadowRadius: inputFocusProgress.value * 10,
+    shadowOffset: { width: 0, height: 0 },
+  }));
+
+  const handleInputFocus = () => {
+    inputFocusProgress.value = withTiming(1, { duration: 250 });
+  };
+
+  const handleInputBlur = () => {
+    inputFocusProgress.value = withTiming(0, { duration: 200 });
+  };
+
+  const handleMenuPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Alert.alert("Coming Soon", "Settings and reading history will be available in a future update.");
+  };
 
   // Fade in when screen comes into focus - delayed to let navigation complete first
   useFocusEffect(
@@ -134,8 +162,8 @@ export default function HomeScreen() {
                   style={{ width: 150, height: 40, marginLeft: -12 }}
                   resizeMode="contain"
                 />
-                <Pressable onPress={() => { }} className="p-2">
-                  <Menu color="#C9A962" size={32} />
+                <Pressable onPress={handleMenuPress} className="p-2">
+                  <Menu color="#C9A962" size={28} />
                 </Pressable>
               </Animated.View>
 
@@ -176,17 +204,21 @@ export default function HomeScreen() {
 
               {/* Intention Input */}
               <Animated.View entering={FadeInDown.delay(200).duration(500)} className="mb-6">
-                <TextInput
-                  value={intention}
-                  onChangeText={setIntention}
-                  placeholder="What questions or situation needs clarity?"
-                  placeholderTextColor="#5A5A5A"
-                  multiline
-                  numberOfLines={5}
-                  maxLength={500}
-                  className="bg-surface border border-surface rounded-2xl p-6 text-2xl text-text-primary min-h-[180px]"
-                  style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
-                />
+                <Animated.View style={inputAnimatedStyle} className="bg-surface rounded-2xl border">
+                  <TextInput
+                    value={intention}
+                    onChangeText={setIntention}
+                    onFocus={handleInputFocus}
+                    onBlur={handleInputBlur}
+                    placeholder="What questions or situation needs clarity?"
+                    placeholderTextColor="#5A5A5A"
+                    multiline
+                    numberOfLines={5}
+                    maxLength={500}
+                    className="p-6 text-2xl text-text-primary min-h-[180px]"
+                    style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
+                  />
+                </Animated.View>
               </Animated.View>
 
               {/* Draw Button */}
