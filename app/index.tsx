@@ -1,4 +1,4 @@
-import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image, StyleSheet, Alert } from "react-native";
+import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef, useState, useCallback } from "react";
 import React from "react";
@@ -6,6 +6,7 @@ import { router, useFocusEffect } from "expo-router";
 import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS, interpolateColor, FadeOut } from "react-native-reanimated";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
+import { MenuModal } from "@/components/ui/MenuModal";
 import { StarField } from "@/components/tarot/StarField";
 import { NebulaLayer } from "@/components/tarot/NebulaLayer";
 import { FogLayer } from "@/components/tarot/FogLayer";
@@ -30,6 +31,9 @@ export default function HomeScreen() {
 
   // Controls whether background components are mounted (for performance)
   const [showBackground, setShowBackground] = useState(false);
+
+  // Menu modal visibility
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { isProUser } = useSubscriptionStore();
   const resetReading = useReadingStore((state) => state.reset);
@@ -98,7 +102,7 @@ export default function HomeScreen() {
 
   const handleMenuPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert("Coming Soon", "Settings and reading history will be available in a future update.");
+    setIsMenuOpen(true);
   };
 
   // Fade in when screen comes into focus - delayed to let navigation complete first
@@ -311,6 +315,9 @@ export default function HomeScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* Settings Menu Modal */}
+      <MenuModal visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </View>
   );
 }
