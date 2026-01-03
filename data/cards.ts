@@ -112,15 +112,15 @@ export const cardData: CardData = {
     spreads: {
         single: {
             type: "single",
-            positions: ["The Answer"],
+            positions: ["MAIN ACTOR"],
         },
         three: {
             type: "three",
-            positions: ["The Situation", "The Obstacle", "The Advice"],
+            positions: ["PAST / GENESIS", "PRESENT / ACTUALITY", "FUTURE / REACTION"],
         },
         five: {
             type: "five",
-            positions: ["The Roots", "The Past", "The Present", "The Future", "The Outcome"],
+            positions: ["OBSTACLE OR BLOCKAGE", "MEANS OF RESOLUTION", "ACTION TO UNDERTAKE", "TRANSFORMATIVE PATHWAY", "PURPOSE OR DESTINATION"],
         },
     },
     cards: [

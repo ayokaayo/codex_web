@@ -1,4 +1,4 @@
-import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { router } from "expo-router";
@@ -6,10 +6,12 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { StarField } from "@/components/tarot/StarField";
+import { NebulaLayer } from "@/components/tarot/NebulaLayer";
 import { FogLayer } from "@/components/tarot/FogLayer";
 import { useSubscriptionStore } from "@/lib/store/subscription";
 import { useReadingStore } from "@/lib/store/reading";
 import * as Haptics from "expo-haptics";
+import { Menu, Lock } from "lucide-react-native";
 
 type SpreadType = "single" | "three" | "five";
 
@@ -67,6 +69,7 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-void">
       <StarField starCount={70} />
+      <NebulaLayer />
       <FogLayer />
 
       <SafeAreaView className="flex-1">
@@ -79,38 +82,26 @@ export default function HomeScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="flex-1 px-6 pt-12 pb-8">
+            <View className="flex-1 px-6 pt-6 pb-8">
               {/* Header */}
-              <Animated.View entering={FadeIn.duration(800)} className="items-center py-4">
-                <Text variant="title" className="text-center pt-2 leading-relaxed">CODEX TAROT</Text>
-              </Animated.View>
-
-              <Animated.View entering={FadeInDown.delay(200).duration(600)} className="items-center px-4">
-                <Text variant="oracleItalic" className="text-text-secondary mt-4 text-center text-4xl leading-10">
-                  What are you here to discover?
-                </Text>
-              </Animated.View>
-
-              {/* Intention Input */}
-              <Animated.View entering={FadeInDown.delay(400).duration(600)} className="mt-10">
-                <TextInput
-                  value={intention}
-                  onChangeText={setIntention}
-                  placeholder="Enter your intention..."
-                  placeholderTextColor="#5A5A5A"
-                  multiline
-                  numberOfLines={4}
-                  maxLength={500}
-                  className="bg-surface border border-surface rounded-2xl p-6 text-2xl text-text-primary min-h-[180px]"
-                  style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
+              <Animated.View entering={FadeIn.duration(500)} className="flex-row justify-between items-center py-2 mb-2">
+                <Image
+                  source={require("../assets/brand/codex_logo_w.png")}
+                  style={{ width: 150, height: 40, marginLeft: -12 }}
+                  resizeMode="contain"
                 />
+                <Pressable onPress={() => { }} className="p-2">
+                  <Menu color="#C9A962" size={32} />
+                </Pressable>
               </Animated.View>
 
+              {/* Spacer to push content to bottom */}
+              <View className="flex-1" />
+
               {/* Spread Selection */}
-              {/* Spread Selection */}
-              <Animated.View entering={FadeInDown.delay(600).duration(600)} className="mt-12 px-4">
-                <Text variant="label" className="mb-8 text-center text-xl font-cinzel-extrabold text-gold-bright tracking-widest leading-relaxed">
-                  CHOOSE HOW MANY CARDS ON YOUR SPREAD
+              <Animated.View entering={FadeInDown.delay(100).duration(500)} className="mb-6 px-4">
+                <Text variant="label" className="mb-4 text-center text-xl font-cinzel-extrabold text-gold-bright tracking-widest leading-relaxed">
+                  Select how many cards
                 </Text>
                 <View className="flex-row justify-between gap-4">
                   {spreadOptions.map((option) => (
@@ -124,16 +115,14 @@ export default function HomeScreen() {
                     >
                       <Text
                         style={{ fontFamily: 'Cinzel-ExtraBold', fontVariant: ['tabular-nums'] }}
-                        className={`text-6xl text-center pt-4 ${spreadType === option.type ? "text-gold-bright" : "text-text-secondary opacity-50"
+                        className={`text-7xl text-center pt-2 ${spreadType === option.type ? "text-gold-bright" : "text-text-secondary opacity-50"
                           }`}
                       >
                         {option.label}
                       </Text>
                       {!option.free && (
-                        <View className="absolute top-2 right-2 bg-gold/20 px-2 py-0.5 rounded">
-                          <Text className="text-[10px] text-gold font-cinzel-bold tracking-widest uppercase">
-                            PRO
-                          </Text>
+                        <View className="absolute top-2 right-2 bg-gold/20 p-1.5 rounded-full">
+                          <Lock size={12} color="#C9A962" />
                         </View>
                       )}
                     </Pressable>
@@ -141,11 +130,23 @@ export default function HomeScreen() {
                 </View>
               </Animated.View>
 
-              {/* Spacer */}
-              <View className="flex-1 min-h-[40px]" />
+              {/* Intention Input */}
+              <Animated.View entering={FadeInDown.delay(200).duration(500)} className="mb-6">
+                <TextInput
+                  value={intention}
+                  onChangeText={setIntention}
+                  placeholder="What questions or situation needs clarity?"
+                  placeholderTextColor="#5A5A5A"
+                  multiline
+                  numberOfLines={4}
+                  maxLength={500}
+                  className="bg-surface border border-surface rounded-2xl p-6 text-3xl text-text-primary min-h-[140px]"
+                  style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
+                />
+              </Animated.View>
 
               {/* Draw Button */}
-              <Animated.View entering={FadeInDown.delay(800).duration(600)}>
+              <Animated.View entering={FadeInDown.delay(300).duration(500)}>
                 <Button
                   variant="primary"
                   disabled={!intention.trim()}

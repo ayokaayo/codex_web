@@ -6,6 +6,8 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { StarField } from "@/components/tarot/StarField";
+import { NebulaLayer } from "@/components/tarot/NebulaLayer";
+import { FogLayer } from "@/components/tarot/FogLayer";
 import { ReadingLoader } from "@/components/ui/Loading";
 import { TarotCard } from "@/components/tarot/TarotCard";
 import { useReading } from "@/lib/hooks/useReading";
@@ -15,7 +17,7 @@ import { drawCards } from "@/lib/utils/deck";
 const FALLBACK_IMAGE = require("../../assets/favicon.png");
 
 // Wrapper to handle flip animation
-function DelayedRevealCard({ card, image, delay }: { card: string; image: any; delay: number }) {
+function DelayedRevealCard({ card, image, delay, showName = true }: { card: string; image: any; delay: number; showName?: boolean }) {
   const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
@@ -31,6 +33,7 @@ function DelayedRevealCard({ card, image, delay }: { card: string; image: any; d
       image={image}
       isRevealed={isRevealed}
       size="medium"
+      showName={showName}
     />
   );
 }
@@ -85,7 +88,9 @@ export default function ReadingScreen() {
 
   return (
     <View className="flex-1 bg-void">
-      <StarField starCount={40} />
+      <StarField starCount={40} shootingStars={false} />
+      <NebulaLayer />
+      <FogLayer />
 
       <SafeAreaView className="flex-1">
         <ScrollView
@@ -127,19 +132,33 @@ export default function ReadingScreen() {
                 className="items-center gap-6"
               >
                 {/* Position Label */}
-                <Text variant="label" className="text-gold">
+                <Text variant="label" className="text-gold text-xl">
                   {analysis.position}
                 </Text>
+
+                {/* Card Name - Moved here, revealed with same timing as analysis start */}
+                <Animated.View entering={FadeIn.delay(index * 1200 + 800).duration(500)}>
+                  <Text
+                    variant="caption"
+                    className="text-center text-gold-muted -mt-4 mb-2 text-base"
+                    style={{ fontFamily: 'Cinzel-Bold' }}
+                  >
+                    {analysis.card}
+                  </Text>
+                </Animated.View>
 
                 {/* Card Display with Flip */}
                 <DelayedRevealCard
                   card={analysis.card}
                   image={selectedCards[index]?.image || FALLBACK_IMAGE}
                   delay={800} // Flip 0.8s after entering
+                  showName={false}
                 />
 
-                {/* Analysis Text */}
-                <Animated.View entering={FadeIn.delay(2000).duration(800)}>
+                {/* Analysis Text - Reverted to plain text */}
+                <Animated.View
+                  entering={FadeIn.delay(2000).duration(800)}
+                >
                   <Text variant="body" className="leading-relaxed">
                     {analysis.analysis}
                   </Text>
@@ -160,14 +179,14 @@ export default function ReadingScreen() {
             </View>
           )}
 
-          {/* Synthesis */}
+          {/* Synthesis - Container applied here */}
           {synthesis && (
             <Animated.View
               entering={FadeInDown.duration(800)}
               className="mt-16 p-6 bg-surface/50 rounded-2xl border border-gold-dim/20"
             >
-              <Text variant="subheading" className="text-center mb-4 text-gold-muted">
-                Synthesis
+              <Text variant="subheading" className="text-left mb-6 text-gold-bright text-2xl font-cinzel-extrabold">
+                What this reading means
               </Text>
               <Text variant="body" className="leading-relaxed">
                 {synthesis}
@@ -181,17 +200,19 @@ export default function ReadingScreen() {
             </View>
           )}
 
-          {/* Oracle */}
+          {/* Oracle - Container applied here */}
           {oracle && (
             <Animated.View
               entering={FadeInDown.delay(500).duration(1000)}
-              className="mt-16 items-center gap-4"
+              className="mt-16 gap-4 bg-surface/50 rounded-2xl border border-gold-dim/20 p-6"
             >
-              <Text className="text-2xl text-gold">✦</Text>
-              <Text variant="oracle" className="text-center text-xl leading-loose">
+              <Text variant="subheading" className="text-left mb-2 text-gold-bright text-2xl font-cinzel-extrabold">
+                The tarot's voice
+              </Text>
+              <Text variant="body" className="text-left leading-relaxed">
                 {oracle}
               </Text>
-              <Text className="text-2xl text-gold">✦</Text>
+              <Text className="text-2xl text-gold text-left">✦</Text>
             </Animated.View>
           )}
 
