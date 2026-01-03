@@ -29,6 +29,7 @@ module.exports = {
 
         // Text
         "text-primary": "#E8E6E3",
+        "text-read": "#D4D4D4", // Softened for long reading
         "text-secondary": "#8A8A8A",
         "text-muted": "#5A5A5A",
 
@@ -41,6 +42,7 @@ module.exports = {
         cinzel: ["Cinzel-Regular"],
         "cinzel-semibold": ["Cinzel-SemiBold"],
         "cinzel-bold": ["Cinzel-Bold"],
+        "cinzel-extrabold": ["Cinzel-ExtraBold"], // Added ExtraBold
 
         // Oracle (EB Garamond)
         garamond: ["EBGaramond-Regular"],

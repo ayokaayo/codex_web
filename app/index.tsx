@@ -14,9 +14,9 @@ import * as Haptics from "expo-haptics";
 type SpreadType = "single" | "three" | "five";
 
 const spreadOptions: { type: SpreadType; label: string; cards: number; free: boolean }[] = [
-  { type: "single", label: "1 Card", cards: 1, free: true },
-  { type: "three", label: "3 Cards", cards: 3, free: false },
-  { type: "five", label: "5 Cards", cards: 5, free: false },
+  { type: "single", label: "1", cards: 1, free: true },
+  { type: "three", label: "3", cards: 3, free: false },
+  { type: "five", label: "5", cards: 5, free: false },
 ];
 
 export default function HomeScreen() {
@@ -81,13 +81,13 @@ export default function HomeScreen() {
           >
             <View className="flex-1 px-6 pt-12 pb-8">
               {/* Header */}
-              <Animated.View entering={FadeIn.duration(800)} className="items-center">
-                <Text variant="title">CODEX TAROT</Text>
+              <Animated.View entering={FadeIn.duration(800)} className="items-center py-4">
+                <Text variant="title" className="text-center pt-2 leading-relaxed">CODEX TAROT</Text>
               </Animated.View>
 
-              <Animated.View entering={FadeInDown.delay(200).duration(600)} className="items-center">
-                <Text variant="oracleItalic" className="text-text-secondary text-center mt-4">
-                  What question do you bring to the cards?
+              <Animated.View entering={FadeInDown.delay(200).duration(600)} className="items-center px-4">
+                <Text variant="oracleItalic" className="text-text-secondary mt-4 text-center text-4xl leading-10">
+                  What are you here to discover?
                 </Text>
               </Animated.View>
 
@@ -101,40 +101,40 @@ export default function HomeScreen() {
                   multiline
                   numberOfLines={4}
                   maxLength={500}
-                  className="bg-surface border border-surface rounded-2xl p-4 text-base text-text-primary min-h-[120px]"
+                  className="bg-surface border border-surface rounded-2xl p-6 text-2xl text-text-primary min-h-[180px]"
                   style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
                 />
-                <Text variant="caption" className="text-right mt-2 text-text-muted">
-                  {intention.length}/500
-                </Text>
               </Animated.View>
 
               {/* Spread Selection */}
-              <Animated.View entering={FadeInDown.delay(600).duration(600)} className="mt-8">
-                <Text variant="label" className="text-center mb-4">
-                  Choose your spread
+              {/* Spread Selection */}
+              <Animated.View entering={FadeInDown.delay(600).duration(600)} className="mt-12 px-4">
+                <Text variant="label" className="mb-8 text-center text-xl font-cinzel-extrabold text-gold-bright tracking-widest leading-relaxed">
+                  CHOOSE HOW MANY CARDS ON YOUR SPREAD
                 </Text>
-                <View className="flex-row justify-center gap-3">
+                <View className="flex-row justify-between gap-4">
                   {spreadOptions.map((option) => (
                     <Pressable
                       key={option.type}
                       onPress={() => handleSpreadSelect(option.type)}
-                      className={`flex-1 max-w-[100px] py-4 rounded-2xl border items-center ${spreadType === option.type
+                      className={`flex-1 h-32 rounded-2xl border items-center justify-center ${spreadType === option.type
                         ? "bg-gold/10 border-gold"
                         : "bg-surface border-surface"
                         }`}
                     >
                       <Text
-                        variant="label"
-                        className={`text-sm ${spreadType === option.type ? "text-gold" : "text-text-secondary"
+                        style={{ fontFamily: 'Cinzel-ExtraBold', fontVariant: ['tabular-nums'] }}
+                        className={`text-6xl text-center pt-4 ${spreadType === option.type ? "text-gold-bright" : "text-text-secondary opacity-50"
                           }`}
                       >
                         {option.label}
                       </Text>
                       {!option.free && (
-                        <Text className="text-2xs text-purple mt-1" style={{ fontFamily: "EBGaramond-Regular" }}>
-                          PRO
-                        </Text>
+                        <View className="absolute top-2 right-2 bg-gold/20 px-2 py-0.5 rounded">
+                          <Text className="text-[10px] text-gold font-cinzel-bold tracking-widest uppercase">
+                            PRO
+                          </Text>
+                        </View>
                       )}
                     </Pressable>
                   ))}
@@ -151,8 +151,9 @@ export default function HomeScreen() {
                   disabled={!intention.trim()}
                   loading={isLoading}
                   onPress={handleDrawCards}
+                  textClassName="text-xl font-bold tracking-widest"
                 >
-                  Draw Cards
+                  DRAW CARDS
                 </Button>
               </Animated.View>
             </View>

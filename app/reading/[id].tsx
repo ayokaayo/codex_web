@@ -77,9 +77,9 @@ export default function ReadingScreen() {
   // Auto-scroll as content arrives
   useEffect(() => {
     if (status === "complete" || synthesis) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 500);
+      // setTimeout(() => {
+      //   scrollViewRef.current?.scrollToEnd({ animated: true });
+      // }, 500);
     }
   }, [status, synthesis, oracle]);
 
@@ -96,12 +96,12 @@ export default function ReadingScreen() {
           {/* Header */}
           <Animated.View
             entering={FadeIn.duration(600)}
-            className="items-center py-6 border-b border-surface"
+            className="items-center py-2 border-b border-surface"
           >
             <Text variant="heading" className="text-center">
               Your Reading
             </Text>
-            <Text variant="oracleItalic" className="text-text-secondary text-center mt-2">
+            <Text variant="oracleItalic" className="text-text-secondary text-center mt-1 text-3xl">
               "{intention}"
             </Text>
           </Animated.View>
@@ -110,9 +110,9 @@ export default function ReadingScreen() {
           {opening && (
             <Animated.View
               entering={FadeInDown.duration(600)}
-              className="mt-8 mb-8"
+              className="mt-4 mb-4 px-2"
             >
-              <Text variant="oracle" className="text-center italic">
+              <Text variant="oracle" className="italic leading-relaxed">
                 {opening}
               </Text>
             </Animated.View>
@@ -140,7 +140,7 @@ export default function ReadingScreen() {
 
                 {/* Analysis Text */}
                 <Animated.View entering={FadeIn.delay(2000).duration(800)}>
-                  <Text variant="body" className="text-center leading-relaxed">
+                  <Text variant="body" className="leading-relaxed">
                     {analysis.analysis}
                   </Text>
                 </Animated.View>
@@ -188,7 +188,7 @@ export default function ReadingScreen() {
               className="mt-16 items-center gap-4"
             >
               <Text className="text-2xl text-gold">✦</Text>
-              <Text variant="oracle" className="text-center text-xl leading-loose text-gold-bright">
+              <Text variant="oracle" className="text-center text-xl leading-loose">
                 {oracle}
               </Text>
               <Text className="text-2xl text-gold">✦</Text>
@@ -207,8 +207,12 @@ export default function ReadingScreen() {
               entering={FadeIn.delay(1000).duration(600)}
               className="mt-16 mb-8"
             >
-              <Button onPress={() => router.replace("/")} variant="secondary">
-                New Reading
+              <Button
+                onPress={() => router.replace("/")}
+                variant="primary"
+                textClassName="text-xl font-bold tracking-widest"
+              >
+                NEW READING
               </Button>
             </Animated.View>
           )}

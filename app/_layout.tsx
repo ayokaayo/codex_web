@@ -17,6 +17,7 @@ export default function RootLayout() {
     "Cinzel-Regular": require("../assets/fonts/Cinzel-Regular.ttf"),
     "Cinzel-SemiBold": require("../assets/fonts/Cinzel-SemiBold.ttf"),
     "Cinzel-Bold": require("../assets/fonts/Cinzel-Bold.ttf"),
+    "Cinzel-ExtraBold": require("../assets/fonts/Cinzel-ExtraBold.ttf"), // Added ExtraBold
     "EBGaramond-Regular": require("../assets/fonts/EBGaramond-Regular.ttf"),
     "EBGaramond-Medium": require("../assets/fonts/EBGaramond-Medium.ttf"),
     "EBGaramond-Italic": require("../assets/fonts/EBGaramond-Italic.ttf"),

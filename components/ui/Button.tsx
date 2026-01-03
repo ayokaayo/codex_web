@@ -16,6 +16,7 @@ interface Props extends Omit<PressableProps, "children"> {
   variant?: Variant;
   children: string;
   loading?: boolean;
+  textClassName?: string;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -36,6 +37,7 @@ export function Button({
   disabled,
   loading,
   onPress,
+  textClassName = "",
   ...props
 }: Props) {
   const scale = useSharedValue(1);
@@ -66,14 +68,13 @@ export function Button({
       onPressOut={handlePressOut}
       onPress={onPress}
       disabled={isDisabled}
-      className={`py-4 px-8 rounded-2xl items-center justify-center ${variantClasses[variant]} ${
-        isDisabled ? "opacity-50" : ""
-      }`}
+      className={`py-4 px-8 rounded-2xl items-center justify-center ${variantClasses[variant]} ${isDisabled ? "opacity-50" : ""
+        }`}
       {...props}
     >
       <Text
         variant="label"
-        className={`text-base ${textClasses[variant]}`}
+        className={`text-base ${textClasses[variant]} ${textClassName}`}
       >
         {loading ? "..." : children}
       </Text>

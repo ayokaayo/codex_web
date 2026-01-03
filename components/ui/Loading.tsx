@@ -83,7 +83,7 @@ export function ReadingLoader() {
         <LoadingDots />
         <Animated.Text
           entering={FadeIn.duration(500)}
-          className="text-base text-text-secondary"
+          className="text-2xl text-text-secondary"
           style={{ fontFamily: "EBGaramond-Italic" }}
         >
           The cards are speaking...
