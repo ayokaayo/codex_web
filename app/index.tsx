@@ -1,8 +1,8 @@
-import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image } from "react-native";
+import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
-import { router } from "expo-router";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { useState, useCallback } from "react";
+import { router, useFocusEffect } from "expo-router";
+import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS } from "react-native-reanimated";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { StarField } from "@/components/tarot/StarField";
@@ -26,14 +26,59 @@ export default function HomeScreen() {
   const [spreadType, setSpreadType] = useState<SpreadType>("single");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Controls whether background components are mounted (for performance)
+  const [showBackground, setShowBackground] = useState(false);
+
   const { isProUser } = useSubscriptionStore();
   const resetReading = useReadingStore((state) => state.reset);
+
+  // Background opacity for fade effects
+  const backgroundOpacity = useSharedValue(0);
+
+  // Fade in when screen comes into focus - delayed to let navigation complete first
+  useFocusEffect(
+    useCallback(() => {
+      // Mount background components first
+      setShowBackground(true);
+
+      // Then start fade-in animation after a brief delay for smoother transition
+      const timer = setTimeout(() => {
+        backgroundOpacity.value = withTiming(1, { duration: 800 });
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }, [])
+  );
+
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: backgroundOpacity.value,
+  }));
 
   const selectedSpread = spreadOptions.find((s) => s.type === spreadType)!;
 
   const handleSpreadSelect = (type: SpreadType) => {
     Haptics.selectionAsync();
     setSpreadType(type);
+  };
+
+  const navigateToReading = () => {
+    // Unmount background components to stop all animations (performance)
+    setShowBackground(false);
+
+    // Navigate immediately for snappy response
+    router.push({
+      pathname: "/reading/[id]",
+      params: {
+        id: Date.now().toString(),
+        intention,
+        spreadType,
+      },
+    });
+
+    // Reset loading state after navigation starts
+    setIsLoading(false);
   };
 
   const handleDrawCards = async () => {
@@ -52,25 +97,24 @@ export default function HomeScreen() {
     setIsLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Navigate to reading screen with params
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push({
-        pathname: "/reading/[id]",
-        params: {
-          id: Date.now().toString(),
-          intention,
-          spreadType,
-        },
-      });
-    }, 500);
+    // Fade out background before navigating
+    backgroundOpacity.value = withTiming(0, { duration: 600 }, (finished) => {
+      if (finished) {
+        runOnJS(navigateToReading)();
+      }
+    });
   };
 
   return (
     <View className="flex-1 bg-void">
-      <StarField starCount={70} />
-      <NebulaLayer />
-      <FogLayer />
+      {/* Background Layer with Fade Animation - conditionally rendered for performance */}
+      {showBackground && (
+        <Animated.View style={[StyleSheet.absoluteFill, backgroundAnimatedStyle]} pointerEvents="none">
+          <StarField starCount={70} />
+          <NebulaLayer />
+          <FogLayer />
+        </Animated.View>
+      )}
 
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView

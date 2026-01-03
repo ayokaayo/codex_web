@@ -9,6 +9,7 @@ import Animated, {
   withSequence,
   Easing,
   runOnJS,
+  cancelAnimation,
 } from "react-native-reanimated";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -96,6 +97,14 @@ function StarPoint({ star }: { star: Star }) {
         true
       )
     );
+
+    // Cleanup: cancel all animations on unmount for performance
+    return () => {
+      cancelAnimation(opacity);
+      cancelAnimation(scale);
+      cancelAnimation(translateX);
+      cancelAnimation(translateY);
+    };
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -200,6 +209,12 @@ function ShootingStar({ minDelay = 10000, maxDelay = 25000, triggerImmediately =
     return () => {
       isMounted = false;
       clearTimeout(timeout);
+      // Cancel all animations for performance
+      cancelAnimation(translateX);
+      cancelAnimation(translateY);
+      cancelAnimation(opacity);
+      cancelAnimation(rotation);
+      cancelAnimation(scale);
     };
   }, [minDelay, maxDelay, triggerImmediately]);
 

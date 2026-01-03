@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
   Easing,
   interpolate,
+  cancelAnimation,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -24,6 +25,11 @@ export function FogLayer() {
       -1,
       true
     );
+
+    // Cleanup: cancel animation on unmount for performance
+    return () => {
+      cancelAnimation(progress);
+    };
   }, []);
 
   const fogStyle1 = useAnimatedStyle(() => ({

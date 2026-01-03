@@ -5,7 +5,19 @@ import {
     generateSynthesis,
     generateOracle,
 } from "@/lib/api/reading";
+import {
+    mockGenerateCardAnalyses,
+    mockGenerateSynthesis,
+    mockGenerateOracle,
+} from "@/lib/api/mockReading";
 import type { Card } from "@/lib/types/tarot";
+
+// Dev mode flag - uses mock responses to avoid API costs
+const DEV_MOCK_API = process.env.EXPO_PUBLIC_DEV_MOCK_API === "true";
+
+if (DEV_MOCK_API) {
+    console.log("🧪 DEV MODE: Using mock API responses (no Anthropic API calls)");
+}
 
 export function useReading() {
     const store = useReadingStore();
@@ -26,11 +38,9 @@ export function useReading() {
 
                 store.setStatus("analyzing");
                 console.log("[useReading] Calling generateCardAnalyses...");
-                const call1 = await generateCardAnalyses({
-                    intention,
-                    spreadType,
-                    cards,
-                });
+                const call1 = DEV_MOCK_API
+                    ? await mockGenerateCardAnalyses({ intention, spreadType, cards })
+                    : await generateCardAnalyses({ intention, spreadType, cards });
                 console.log("[useReading] Call 1 response:", call1);
                 store.setOpening(call1.opening);
                 store.setCardAnalyses(call1.cards);
@@ -38,7 +48,9 @@ export function useReading() {
                 // Single card: skip synthesis
                 if (spreadType === "single") {
                     store.setStatus("oracle");
-                    const call3 = await generateOracle(intention, cards, null);
+                    const call3 = DEV_MOCK_API
+                        ? await mockGenerateOracle(intention, cards, null)
+                        : await generateOracle(intention, cards, null);
                     store.setOracle(call3.oracle);
                     store.setStatus("complete");
                     return;
@@ -47,14 +59,18 @@ export function useReading() {
                 // Call 2: Synthesis
                 store.setStatus("synthesizing");
                 console.log("[useReading] Calling generateSynthesis...");
-                const call2 = await generateSynthesis(intention, call1.cards);
+                const call2 = DEV_MOCK_API
+                    ? await mockGenerateSynthesis(intention, call1.cards)
+                    : await generateSynthesis(intention, call1.cards);
                 console.log("[useReading] Call 2 response:", call2);
                 store.setSynthesis(call2.synthesis);
 
                 // Call 3: Oracle
                 store.setStatus("oracle");
                 console.log("[useReading] Calling generateOracle...");
-                const call3 = await generateOracle(intention, cards, call2.synthesis);
+                const call3 = DEV_MOCK_API
+                    ? await mockGenerateOracle(intention, cards, call2.synthesis)
+                    : await generateOracle(intention, cards, call2.synthesis);
                 console.log("[useReading] Call 3 response:", call3);
                 store.setOracle(call3.oracle);
 

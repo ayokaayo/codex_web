@@ -50,7 +50,7 @@ export function NebulaLayer() {
             { translateY: interpolate(progress1.value, [0, 1], [-30, 30]) },
             { scale: interpolate(progress1.value, [0, 1], [1, 1.08]) },
         ],
-        opacity: interpolate(progress1.value, [0, 0.5, 1], [0.25, 0.45, 0.25]),
+        opacity: interpolate(progress1.value, [0, 0.5, 1], [0.32, 0.58, 0.32]),
     }));
 
     const nebulaStyle2 = useAnimatedStyle(() => ({
@@ -59,7 +59,7 @@ export function NebulaLayer() {
             { translateY: interpolate(progress2.value, [0, 1], [30, -30]) },
             { scale: interpolate(progress2.value, [0, 1], [1.08, 1]) },
         ],
-        opacity: interpolate(progress2.value, [0, 0.5, 1], [0.2, 0.38, 0.2]),
+        opacity: interpolate(progress2.value, [0, 0.5, 1], [0.28, 0.5, 0.28]),
     }));
 
     const staticStyles = useMemo(() => StyleSheet.create({
@@ -96,9 +96,9 @@ export function NebulaLayer() {
                 <LinearGradient
                     colors={[
                         "transparent",
-                        "rgba(107, 91, 149, 0.12)", // Purple from tailwind (purple: #6B5B95)
-                        "rgba(107, 91, 149, 0.08)",
-                        "rgba(74, 64, 102, 0.04)", // purple-muted: #4A4066
+                        "rgba(107, 91, 149, 0.18)", // Purple
+                        "rgba(107, 91, 149, 0.13)",
+                        "rgba(74, 64, 102, 0.07)",
                         "transparent"
                     ]}
                     start={{ x: 0.3, y: 0.3 }}
@@ -112,9 +112,9 @@ export function NebulaLayer() {
                 <LinearGradient
                     colors={[
                         "transparent",
-                        "rgba(74, 124, 155, 0.08)", // Blue from tailwind (blue: #4A7C9B)
-                        "rgba(74, 124, 155, 0.06)",
-                        "rgba(58, 95, 120, 0.03)", // blue-muted: #3A5F78
+                        "rgba(74, 124, 155, 0.13)", // Blue
+                        "rgba(74, 124, 155, 0.10)",
+                        "rgba(58, 95, 120, 0.05)",
                         "transparent"
                     ]}
                     start={{ x: 0.7, y: 0.7 }}

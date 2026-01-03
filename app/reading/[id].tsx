@@ -129,9 +129,7 @@ export default function ReadingScreen() {
 
   return (
     <View className="flex-1 bg-void">
-      <StarField starCount={40} shootingStars={false} />
-      <NebulaLayer />
-      <FogLayer />
+      {/* Background components removed as requested */}
 
       <SafeAreaView className="flex-1">
         <ScrollView
