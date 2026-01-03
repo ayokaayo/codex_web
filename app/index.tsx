@@ -1,8 +1,9 @@
 import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Image, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import React from "react";
 import { router, useFocusEffect } from "expo-router";
-import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS, interpolateColor } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS, interpolateColor, FadeOut } from "react-native-reanimated";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { StarField } from "@/components/tarot/StarField";
@@ -10,6 +11,7 @@ import { NebulaLayer } from "@/components/tarot/NebulaLayer";
 import { FogLayer } from "@/components/tarot/FogLayer";
 import { useSubscriptionStore } from "@/lib/store/subscription";
 import { useReadingStore } from "@/lib/store/reading";
+import { useUsageStore } from "@/lib/store/usage";
 import * as Haptics from "expo-haptics";
 import { Menu, Lock } from "lucide-react-native";
 
@@ -32,6 +34,9 @@ export default function HomeScreen() {
   const { isProUser } = useSubscriptionStore();
   const resetReading = useReadingStore((state) => state.reset);
 
+  // Usage tracking for free tier limits
+  const { fetchUsage, canUseSpread, getRemainingReadings } = useUsageStore();
+
   // Background opacity for fade effects
   const backgroundOpacity = useSharedValue(0);
 
@@ -39,6 +44,7 @@ export default function HomeScreen() {
   const inputFocusProgress = useSharedValue(0);
 
   const inputAnimatedStyle = useAnimatedStyle(() => ({
+    borderWidth: 1,
     borderColor: interpolateColor(
       inputFocusProgress.value,
       [0, 1],
@@ -58,6 +64,38 @@ export default function HomeScreen() {
     inputFocusProgress.value = withTiming(0, { duration: 200 });
   };
 
+  const selectedSpread = spreadOptions.find((s) => s.type === spreadType)!;
+
+  // Check if current spread selection is locked (free tier exhausted)
+  const isSpreadLocked = !selectedSpread.free && !isProUser && !canUseSpread(spreadType);
+
+  // Animated opacity for locked message (smooth crossfade)
+  const lockedOpacity = useSharedValue(isSpreadLocked ? 1 : 0);
+  const unlockedOpacity = useSharedValue(isSpreadLocked ? 0 : 1);
+
+  // Smoothly transition between locked/unlocked states
+  React.useEffect(() => {
+    if (isSpreadLocked) {
+      // Reset focus when locking (removes gold border)
+      inputFocusProgress.value = withTiming(0, { duration: 200 });
+      // Fade out input, fade in locked message
+      unlockedOpacity.value = withTiming(0, { duration: 200 });
+      lockedOpacity.value = withTiming(1, { duration: 350 });
+    } else {
+      // Fade out locked message, fade in input
+      lockedOpacity.value = withTiming(0, { duration: 200 });
+      unlockedOpacity.value = withTiming(1, { duration: 350 });
+    }
+  }, [isSpreadLocked]);
+
+  const lockedAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: lockedOpacity.value,
+  }));
+
+  const unlockedAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: unlockedOpacity.value,
+  }));
+
   const handleMenuPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert("Coming Soon", "Settings and reading history will be available in a future update.");
@@ -69,6 +107,11 @@ export default function HomeScreen() {
       // Mount background components first
       setShowBackground(true);
 
+      // Fetch usage data for free tier limits (only if not pro)
+      if (!isProUser) {
+        fetchUsage();
+      }
+
       // Then start fade-in animation after a brief delay for smoother transition
       const timer = setTimeout(() => {
         backgroundOpacity.value = withTiming(1, { duration: 800 });
@@ -77,14 +120,12 @@ export default function HomeScreen() {
       return () => {
         clearTimeout(timer);
       };
-    }, [])
+    }, [isProUser])
   );
 
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
     opacity: backgroundOpacity.value,
   }));
-
-  const selectedSpread = spreadOptions.find((s) => s.type === spreadType)!;
 
   const handleSpreadSelect = (type: SpreadType) => {
     Haptics.selectionAsync();
@@ -110,14 +151,14 @@ export default function HomeScreen() {
   };
 
   const handleDrawCards = async () => {
-    if (!intention.trim()) return;
-
-    // Check if paid spread and not subscribed
-    if (!selectedSpread.free && !isProUser) {
-      // User needs to subscribe
+    // If spread is locked, go to paywall
+    if (isSpreadLocked) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       router.push("/paywall");
       return;
     }
+
+    if (!intention.trim()) return;
 
     // Reset previous reading state
     resetReading();
@@ -181,7 +222,7 @@ export default function HomeScreen() {
                       key={option.type}
                       onPress={() => handleSpreadSelect(option.type)}
                       className={`flex-1 h-32 rounded-2xl border items-center justify-center ${spreadType === option.type
-                        ? "bg-gold/10 border-gold"
+                        ? "bg-surface border-gold"
                         : "bg-surface border-surface"
                         }`}
                     >
@@ -192,9 +233,18 @@ export default function HomeScreen() {
                       >
                         {option.label}
                       </Text>
-                      {!option.free && (
+                      {/* Show padlock only if: not free tier AND (pro user OR free tier exhausted) */}
+                      {!option.free && !isProUser && !canUseSpread(option.type) && (
                         <View className="absolute top-2 right-2 bg-gold/20 p-1.5 rounded-full">
                           <Lock size={12} color="#C9A962" />
+                        </View>
+                      )}
+                      {/* Show remaining count for free users who still have readings */}
+                      {!option.free && !isProUser && canUseSpread(option.type) && (
+                        <View className="absolute top-2 right-2 bg-gold/20 px-2 py-1 rounded-full">
+                          <Text className="text-gold text-xs font-sans-medium">
+                            {getRemainingReadings(option.type as "three" | "five")} left
+                          </Text>
                         </View>
                       )}
                     </Pressable>
@@ -202,35 +252,59 @@ export default function HomeScreen() {
                 </View>
               </Animated.View>
 
-              {/* Intention Input */}
-              <Animated.View entering={FadeInDown.delay(200).duration(500)} className="mb-6">
-                <Animated.View style={inputAnimatedStyle} className="bg-surface rounded-2xl border">
-                  <TextInput
-                    value={intention}
-                    onChangeText={setIntention}
-                    onFocus={handleInputFocus}
-                    onBlur={handleInputBlur}
-                    placeholder="What questions or situation needs clarity?"
-                    placeholderTextColor="#5A5A5A"
-                    multiline
-                    numberOfLines={5}
-                    maxLength={500}
-                    className="p-6 text-2xl text-text-primary min-h-[180px]"
-                    style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
-                  />
+              {/* Intention Input - single container, content crossfades inside */}
+              <Animated.View
+                entering={FadeInDown.delay(200).duration(500)}
+                className="mb-6"
+              >
+                <Animated.View
+                  style={inputAnimatedStyle}
+                  className="bg-surface rounded-2xl min-h-[180px] overflow-hidden"
+                >
+                  {/* Locked message content - fades in/out */}
+                  <Animated.View
+                    style={[lockedAnimatedStyle, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', padding: 24 }]}
+                    pointerEvents={isSpreadLocked ? 'auto' : 'none'}
+                  >
+                    <Lock size={32} color="#C9A962" style={{ marginBottom: 12 }} />
+                    <Text className="text-text-muted text-center text-lg">
+                      You've used all your free {spreadType === "three" ? "3-card" : "5-card"} readings this month
+                    </Text>
+                  </Animated.View>
+
+                  {/* Input content - fades in/out */}
+                  <Animated.View
+                    style={[unlockedAnimatedStyle]}
+                    pointerEvents={isSpreadLocked ? 'none' : 'auto'}
+                  >
+                    <TextInput
+                      value={intention}
+                      onChangeText={setIntention}
+                      onFocus={handleInputFocus}
+                      onBlur={handleInputBlur}
+                      placeholder="What questions or situation needs clarity?"
+                      placeholderTextColor="#5A5A5A"
+                      multiline
+                      numberOfLines={5}
+                      maxLength={500}
+                      editable={!isSpreadLocked}
+                      className="p-6 text-2xl text-text-primary min-h-[180px]"
+                      style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
+                    />
+                  </Animated.View>
                 </Animated.View>
               </Animated.View>
 
-              {/* Draw Button */}
+              {/* Draw Button - changes to unlock button when spread is locked */}
               <Animated.View entering={FadeInDown.delay(300).duration(500)}>
                 <Button
                   variant="primary"
-                  disabled={!intention.trim()}
+                  disabled={!isSpreadLocked && !intention.trim()}
                   loading={isLoading}
                   onPress={handleDrawCards}
                   textClassName="text-xl tracking-widest"
                 >
-                  DRAW CARDS
+                  {isSpreadLocked ? "UNLOCK FULL READINGS" : "DRAW CARDS"}
                 </Button>
               </Animated.View>
             </View>

@@ -12,6 +12,7 @@ import { FogLayer } from "@/components/tarot/FogLayer";
 import { ReadingLoader } from "@/components/ui/Loading";
 import { TarotCard } from "@/components/tarot/TarotCard";
 import { useReading } from "@/lib/hooks/useReading";
+import { useUsageStore } from "@/lib/store/usage";
 import { drawCards } from "@/lib/utils/deck";
 
 // Fallback image if card image not found
@@ -89,6 +90,10 @@ export default function ReadingScreen() {
   // Card preview modal state
   const [previewCard, setPreviewCard] = useState<{ name: string; image: any } | null>(null);
 
+  // Usage tracking
+  const { incrementUsage } = useUsageStore();
+  const hasIncrementedUsage = useRef(false);
+
   // Check if a card is visible in the viewport
   const checkCardVisibility = (scrollPosition: number) => {
     const newVisibleCards = cardPositions.current.map((cardY) => {
@@ -126,6 +131,14 @@ export default function ReadingScreen() {
       // }, 500);
     }
   }, [status, synthesis, oracle]);
+
+  // Increment usage when reading completes
+  useEffect(() => {
+    if (status === "complete" && spreadType && !hasIncrementedUsage.current) {
+      hasIncrementedUsage.current = true;
+      incrementUsage(spreadType);
+    }
+  }, [status, spreadType, incrementUsage]);
 
   return (
     <View className="flex-1 bg-void">
