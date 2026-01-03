@@ -196,7 +196,7 @@ export default function HomeScreen() {
                   disabled={!intention.trim()}
                   loading={isLoading}
                   onPress={handleDrawCards}
-                  textClassName="text-xl font-bold tracking-widest"
+                  textClassName="text-xl tracking-widest"
                 >
                   DRAW CARDS
                 </Button>

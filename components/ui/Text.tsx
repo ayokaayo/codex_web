@@ -25,7 +25,7 @@ const variantStyles: Record<Variant, { className: string; fontFamily: string }> 
   caption: { className: "text-xl text-gray-300 leading-normal", fontFamily: "EBGaramond-Regular" },
   label: { className: "text-base text-gold-muted uppercase tracking-[0.2em]", fontFamily: "Cinzel-ExtraBold" },
   oracle: { className: "text-3xl text-gray-100 leading-loose", fontFamily: "EBGaramond-Regular" },
-  oracleItalic: { className: "text-3xl text-gray-300 leading-loose italic", fontFamily: "EBGaramond-Italic" },
+  oracleItalic: { className: "text-3xl text-gray-300 leading-loose", fontFamily: "EBGaramond-Italic" },
 };
 
 export function Text({ variant = "body", className = "", children, style, ...props }: Props) {
@@ -34,7 +34,7 @@ export function Text({ variant = "body", className = "", children, style, ...pro
   return (
     <RNText
       className={`${variantStyle.className} ${className}`}
-      style={[{ fontFamily: variantStyle.fontFamily }, style]}
+      style={[{ fontFamily: variantStyle.fontFamily, fontWeight: "normal" }, style]}
       {...props}
     >
       {children}

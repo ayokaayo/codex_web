@@ -150,7 +150,7 @@ export default function ReadingScreen() {
             className="items-center py-2 border-b border-surface"
           >
             <Text variant="heading" className="text-center">
-              Your Reading
+              YOUR READING
             </Text>
             <Text variant="oracleItalic" className="text-text-secondary text-center mt-1 text-3xl">
               "{intention}"
@@ -163,7 +163,7 @@ export default function ReadingScreen() {
               entering={FadeInDown.duration(600)}
               className="mt-4 mb-4 px-2"
             >
-              <Text variant="oracle" className="italic leading-relaxed">
+              <Text variant="oracleItalic" className="leading-relaxed">
                 {opening}
               </Text>
             </Animated.View>
@@ -286,7 +286,7 @@ export default function ReadingScreen() {
               <Button
                 onPress={() => router.replace("/")}
                 variant="primary"
-                textClassName="text-xl font-bold tracking-widest"
+                textClassName="text-xl tracking-widest"
               >
                 NEW READING
               </Button>
