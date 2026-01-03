@@ -138,9 +138,9 @@ export default function HomeScreen() {
                   placeholder="What questions or situation needs clarity?"
                   placeholderTextColor="#5A5A5A"
                   multiline
-                  numberOfLines={4}
+                  numberOfLines={5}
                   maxLength={500}
-                  className="bg-surface border border-surface rounded-2xl p-6 text-3xl text-text-primary min-h-[140px]"
+                  className="bg-surface border border-surface rounded-2xl p-6 text-2xl text-text-primary min-h-[180px]"
                   style={{ textAlignVertical: "top", fontFamily: "EBGaramond-Regular" }}
                 />
               </Animated.View>

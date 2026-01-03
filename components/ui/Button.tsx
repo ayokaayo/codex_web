@@ -49,14 +49,14 @@ export function Button({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15 });
-    opacity.value = withTiming(0.9, { duration: 100 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    scale.value = withTiming(0.95, { duration: 50 });
+    opacity.value = withTiming(0.85, { duration: 50 });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15 });
-    opacity.value = withTiming(1, { duration: 150 });
+    scale.value = withTiming(1, { duration: 100 });
+    opacity.value = withTiming(1, { duration: 100 });
   };
 
   const isDisabled = disabled || loading;

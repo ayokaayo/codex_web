@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
+import { CardPreviewModal } from "@/components/ui/CardPreviewModal";
 import { StarField } from "@/components/tarot/StarField";
 import { NebulaLayer } from "@/components/tarot/NebulaLayer";
 import { FogLayer } from "@/components/tarot/FogLayer";
@@ -16,16 +17,34 @@ import { drawCards } from "@/lib/utils/deck";
 // Fallback image if card image not found
 const FALLBACK_IMAGE = require("../../assets/favicon.png");
 
-// Wrapper to handle flip animation
-function DelayedRevealCard({ card, image, delay, showName = true }: { card: string; image: any; delay: number; showName?: boolean }) {
+// Wrapper to handle flip animation - triggers when card becomes visible
+function DelayedRevealCard({
+  card,
+  image,
+  isVisible,
+  showName = true,
+  onPress
+}: {
+  card: string;
+  image: any;
+  isVisible: boolean;
+  showName?: boolean;
+  onPress?: () => void;
+}) {
   const [isRevealed, setIsRevealed] = useState(false);
+  const hasTriggered = useRef(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsRevealed(true);
-    }, delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
+    // Only trigger once when becoming visible
+    if (isVisible && !hasTriggered.current) {
+      hasTriggered.current = true;
+      // Small delay after visibility for smoother UX
+      const timer = setTimeout(() => {
+        setIsRevealed(true);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
 
   return (
     <TarotCard
@@ -34,6 +53,7 @@ function DelayedRevealCard({ card, image, delay, showName = true }: { card: stri
       isRevealed={isRevealed}
       size="medium"
       showName={showName}
+      onPress={isRevealed ? onPress : undefined}
     />
   );
 }
@@ -59,6 +79,27 @@ export default function ReadingScreen() {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const hasStartedReading = useRef(false);
+
+  // Scroll-based visibility tracking
+  const [scrollY, setScrollY] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const cardPositions = useRef<number[]>([]);
+  const [visibleCards, setVisibleCards] = useState<boolean[]>([]);
+
+  // Card preview modal state
+  const [previewCard, setPreviewCard] = useState<{ name: string; image: any } | null>(null);
+
+  // Check if a card is visible in the viewport
+  const checkCardVisibility = (scrollPosition: number) => {
+    const newVisibleCards = cardPositions.current.map((cardY) => {
+      if (cardY == null || viewportHeight === 0) return false;
+      // Card is visible when it's within the viewport (with some buffer)
+      const cardTop = cardY;
+      const viewportBottom = scrollPosition + viewportHeight;
+      return cardTop < viewportBottom - 100; // 100px buffer from bottom
+    });
+    setVisibleCards(newVisibleCards);
+  };
 
   useEffect(() => {
     // Guard: only run once
@@ -97,6 +138,13 @@ export default function ReadingScreen() {
           ref={scrollViewRef}
           contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
           className="px-6"
+          onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
+          onScroll={(e) => {
+            const y = e.nativeEvent.contentOffset.y;
+            setScrollY(y);
+            checkCardVisibility(y);
+          }}
+          scrollEventThrottle={16}
         >
           {/* Header */}
           <Animated.View
@@ -130,6 +178,11 @@ export default function ReadingScreen() {
                 key={index}
                 entering={FadeInDown.delay(index * 1200).duration(800)}
                 className="items-center gap-6"
+                onLayout={(e) => {
+                  cardPositions.current[index] = e.nativeEvent.layout.y;
+                  // Initial visibility check after layout
+                  checkCardVisibility(scrollY);
+                }}
               >
                 {/* Position Label */}
                 <Text variant="label" className="text-gold text-xl">
@@ -151,8 +204,12 @@ export default function ReadingScreen() {
                 <DelayedRevealCard
                   card={analysis.card}
                   image={selectedCards[index]?.image || FALLBACK_IMAGE}
-                  delay={800} // Flip 0.8s after entering
+                  isVisible={visibleCards[index] || false}
                   showName={false}
+                  onPress={() => setPreviewCard({
+                    name: analysis.card,
+                    image: selectedCards[index]?.image || FALLBACK_IMAGE
+                  })}
                 />
 
                 {/* Analysis Text - Reverted to plain text */}
@@ -251,6 +308,13 @@ export default function ReadingScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+
+      {/* Card Preview Modal */}
+      <CardPreviewModal
+        visible={previewCard !== null}
+        card={previewCard}
+        onClose={() => setPreviewCard(null)}
+      />
     </View>
   );
 }

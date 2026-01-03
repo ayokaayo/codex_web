@@ -21,15 +21,16 @@ interface Props {
   name: string;
   image: any; // require() image or { uri: string }
   isRevealed?: boolean;
-  size?: "small" | "medium" | "large";
+  size?: "small" | "medium" | "large" | "xlarge";
   onPress?: () => void;
   showName?: boolean;
 }
 
 const sizeConfig = {
   small: { width: SCREEN_WIDTH * 0.22 },
-  medium: { width: SCREEN_WIDTH * 0.35 },
+  medium: { width: SCREEN_WIDTH * 0.5 },
   large: { width: SCREEN_WIDTH * 0.55 },
+  xlarge: { width: SCREEN_WIDTH * 0.85 },
 };
 
 export function TarotCard({
