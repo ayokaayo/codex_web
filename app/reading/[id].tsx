@@ -60,10 +60,11 @@ function DelayedRevealCard({
 }
 
 export default function ReadingScreen() {
-  const { id, intention, spreadType } = useLocalSearchParams<{
+  const { id, intention, spreadType, readingMode } = useLocalSearchParams<{
     id: string;
     intention: string;
     spreadType: "single" | "three" | "five";
+    readingMode?: "fate" | "craft";
   }>();
 
   const {
@@ -110,18 +111,26 @@ export default function ReadingScreen() {
     // Guard: only run once
     if (hasStartedReading.current) return;
 
-    if (intention && spreadType) {
+    if (spreadType) {
       hasStartedReading.current = true;
-      // Draw real cards from the deck
-      const count = spreadType === "single" ? 1 : spreadType === "three" ? 3 : 5;
-      const drawnCards = drawCards(count);
-      generateReading(intention, spreadType, drawnCards);
+
+      // In Craft mode, cards are already pre-selected in the store
+      // In Fate mode, draw random cards
+      if (readingMode === "craft" && selectedCards.length > 0) {
+        // Use pre-selected cards from store
+        generateReading(intention || "", spreadType, selectedCards);
+      } else {
+        // Draw real cards from the deck (Fate mode)
+        const count = spreadType === "single" ? 1 : spreadType === "three" ? 3 : 5;
+        const drawnCards = drawCards(count);
+        generateReading(intention || "", spreadType, drawnCards);
+      }
     }
 
     return () => {
       // Only reset on unmount, not on every re-render
     };
-  }, [intention, spreadType]);
+  }, [spreadType, readingMode]);
 
   // Auto-scroll as content arrives
   useEffect(() => {

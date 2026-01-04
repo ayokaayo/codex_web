@@ -31,7 +31,7 @@ export default function RootLayout() {
           await SplashScreen.hideAsync();
         } catch (e) {
           // Ignore error if splash screen is already hidden or not native
-          console.warn("SplashScreen hide error:", e);
+          // This is expected when using modals or on certain simulator configurations
         }
         setAppIsReady(true);
       }

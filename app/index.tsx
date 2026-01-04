@@ -10,13 +10,16 @@ import { MenuModal } from "@/components/ui/MenuModal";
 import { StarField } from "@/components/tarot/StarField";
 import { NebulaLayer } from "@/components/tarot/NebulaLayer";
 import { FogLayer } from "@/components/tarot/FogLayer";
+import { CardSelectionFlow } from "@/components/tarot/CardSelectionFlow";
 import { useSubscriptionStore } from "@/lib/store/subscription";
 import { useReadingStore } from "@/lib/store/reading";
 import { useUsageStore } from "@/lib/store/usage";
+import type { Card } from "@/lib/types/tarot";
 import * as Haptics from "expo-haptics";
 import { Menu, Lock } from "lucide-react-native";
 
 type SpreadType = "single" | "three" | "five";
+type ReadingMode = "fate" | "craft";
 
 const spreadOptions: { type: SpreadType; label: string; cards: number; free: boolean }[] = [
   { type: "single", label: "1", cards: 1, free: true },
@@ -27,6 +30,7 @@ const spreadOptions: { type: SpreadType; label: string; cards: number; free: boo
 export default function HomeScreen() {
   const [intention, setIntention] = useState("");
   const [spreadType, setSpreadType] = useState<SpreadType>("single");
+  const [readingMode, setReadingMode] = useState<ReadingMode>("fate");
   const [isLoading, setIsLoading] = useState(false);
 
   // Controls whether background components are mounted (for performance)
@@ -34,6 +38,9 @@ export default function HomeScreen() {
 
   // Menu modal visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Card selection modal visibility (for Craft mode)
+  const [isCardSelectionOpen, setIsCardSelectionOpen] = useState(false);
 
   const { isProUser } = useSubscriptionStore();
   const resetReading = useReadingStore((state) => state.reset);
@@ -136,6 +143,11 @@ export default function HomeScreen() {
     setSpreadType(type);
   };
 
+  const handleModeSelect = (mode: ReadingMode) => {
+    Haptics.selectionAsync();
+    setReadingMode(mode);
+  };
+
   const navigateToReading = () => {
     // Unmount background components to stop all animations (performance)
     setShowBackground(false);
@@ -178,6 +190,37 @@ export default function HomeScreen() {
     });
   };
 
+  // Handle Craft mode card selection complete
+  const handleCraftCardsSelected = (cards: Card[]) => {
+    // Reset previous reading state
+    resetReading();
+
+    setIsLoading(true);
+
+    // Store selected cards in reading store for the reading screen
+    const setSelectedCards = useReadingStore.getState().setSelectedCards;
+    setSelectedCards(cards);
+
+    // Fade out background before navigating
+    backgroundOpacity.value = withTiming(0, { duration: 600 }, (finished) => {
+      if (finished) {
+        runOnJS(() => {
+          setShowBackground(false);
+          router.push({
+            pathname: "/reading/[id]",
+            params: {
+              id: Date.now().toString(),
+              intention,
+              spreadType,
+              readingMode: "craft",
+            },
+          });
+          setIsLoading(false);
+        })();
+      }
+    });
+  };
+
   return (
     <View className="flex-1 bg-void">
       {/* Background Layer with Fade Animation - conditionally rendered for performance */}
@@ -214,6 +257,59 @@ export default function HomeScreen() {
 
               {/* Spacer to push content to bottom */}
               <View className="flex-1" />
+
+              {/* Mode Toggle - Fate vs Craft */}
+              <Animated.View entering={FadeInDown.delay(50).duration(500)} className="mb-6">
+                <View className="flex-row bg-surface rounded-2xl p-3 gap-3">
+                  <Pressable
+                    onPress={() => handleModeSelect("fate")}
+                    className={`flex-1 py-4 rounded-xl items-center justify-center border ${readingMode === "fate"
+                      ? "bg-surface border-gold"
+                      : "bg-surface border-surface"
+                      }`}
+                  >
+                    <Text
+                      style={{ fontFamily: "Cinzel-Bold" }}
+                      className={`text-xl tracking-wider ${readingMode === "fate" ? "text-gold-bright" : "text-text-muted"
+                        }`}
+                    >
+                      FATE
+                    </Text>
+                    <Text
+                      style={{ fontFamily: "Cinzel-Bold" }}
+                      className={`text-sm -mt-1 ${readingMode === "fate" ? "text-gold/70" : "text-text-muted/50"
+                        }`}>
+                      Random draw
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleModeSelect("craft")}
+                    className={`flex-1 py-4 rounded-xl items-center justify-center border ${readingMode === "craft"
+                      ? "bg-surface border-gold"
+                      : "bg-surface border-surface"
+                      }`}
+                  >
+                    <View className="flex-row items-center gap-1">
+                      <Text
+                        style={{ fontFamily: "Cinzel-Bold" }}
+                        className={`text-xl tracking-wider ${readingMode === "craft" ? "text-gold-bright" : "text-text-muted"
+                          }`}
+                      >
+                        CRAFT
+                      </Text>
+                      {!isProUser && (
+                        <Lock size={14} color={readingMode === "craft" ? "#C9A962" : "#5A5A5A"} />
+                      )}
+                    </View>
+                    <Text
+                      style={{ fontFamily: "Cinzel-Bold" }}
+                      className={`text-sm -mt-1 ${readingMode === "craft" ? "text-gold/70" : "text-text-muted/50"
+                        }`}>
+                      Choose cards
+                    </Text>
+                  </Pressable>
+                </View>
+              </Animated.View>
 
               {/* Spread Selection */}
               <Animated.View entering={FadeInDown.delay(100).duration(500)} className="mb-6">
@@ -286,7 +382,9 @@ export default function HomeScreen() {
                       onChangeText={setIntention}
                       onFocus={handleInputFocus}
                       onBlur={handleInputBlur}
-                      placeholder="What questions or situation needs clarity?"
+                      placeholder={readingMode === "craft"
+                        ? "If you wish, or required, add context to your reading."
+                        : "What questions or situation needs clarity?"}
                       placeholderTextColor="#5A5A5A"
                       multiline
                       numberOfLines={5}
@@ -299,16 +397,20 @@ export default function HomeScreen() {
                 </Animated.View>
               </Animated.View>
 
-              {/* Draw Button - changes to unlock button when spread is locked */}
+              {/* Draw Button - changes based on mode and lock state */}
               <Animated.View entering={FadeInDown.delay(300).duration(500)}>
                 <Button
                   variant="primary"
-                  disabled={!isSpreadLocked && !intention.trim()}
+                  disabled={readingMode === "fate" && !isSpreadLocked && !intention.trim()}
                   loading={isLoading}
-                  onPress={handleDrawCards}
+                  onPress={readingMode === "craft" ? () => setIsCardSelectionOpen(true) : handleDrawCards}
                   textClassName="text-xl tracking-widest"
                 >
-                  {isSpreadLocked ? "UNLOCK FULL READINGS" : "DRAW CARDS"}
+                  {isSpreadLocked
+                    ? "UNLOCK FULL READINGS"
+                    : readingMode === "craft"
+                      ? "SELECT YOUR CARDS"
+                      : "DRAW CARDS"}
                 </Button>
               </Animated.View>
             </View>
@@ -318,6 +420,14 @@ export default function HomeScreen() {
 
       {/* Settings Menu Modal */}
       <MenuModal visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+
+      {/* Card Selection Modal (Craft Mode) */}
+      <CardSelectionFlow
+        visible={isCardSelectionOpen}
+        spreadType={spreadType}
+        onClose={() => setIsCardSelectionOpen(false)}
+        onComplete={handleCraftCardsSelected}
+      />
     </View>
   );
 }
