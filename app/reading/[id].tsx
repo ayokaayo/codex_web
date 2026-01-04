@@ -12,6 +12,7 @@ import { FogLayer } from "@/components/tarot/FogLayer";
 import { ReadingLoader } from "@/components/ui/Loading";
 import { TarotCard } from "@/components/tarot/TarotCard";
 import { useReading } from "@/lib/hooks/useReading";
+import { useReadingStore } from "@/lib/store/reading";
 import { useUsageStore } from "@/lib/store/usage";
 import { drawCards } from "@/lib/utils/deck";
 
@@ -82,13 +83,23 @@ export default function ReadingScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const hasStartedReading = useRef(false);
 
-  // Debug logging for iOS crash investigation
-  console.log("[ReadingScreen] Render:", {
-    readingMode,
-    spreadType,
-    selectedCardsCount: selectedCards.length,
-    hasStarted: hasStartedReading.current,
-  });
+  // Debug logging for iOS crash investigation (dev only)
+  if (__DEV__) {
+    console.log("[ReadingScreen] Render:", {
+      readingMode,
+      spreadType,
+      selectedCardsCount: selectedCards.length,
+      hasStarted: hasStartedReading.current,
+    });
+  }
+
+  // Defensive helper to get card image with fallback
+  const getCardImage = (index: number) => {
+    if (!selectedCards || selectedCards.length === 0) return FALLBACK_IMAGE;
+    const card = selectedCards[index];
+    if (!card || !card.image) return FALLBACK_IMAGE;
+    return card.image;
+  };
 
   // Scroll-based visibility tracking
   const [scrollY, setScrollY] = useState(0);
@@ -133,8 +144,12 @@ export default function ReadingScreen() {
 
       if (selectedCards.length !== expectedCount) {
         console.error(`[ReadingScreen] Card count mismatch: expected ${expectedCount}, got ${selectedCards.length}`);
-        // Fall back to drawing random cards
+        // Fall back to drawing random cards with store sync
+        console.warn("[ReadingScreen] Falling back to random draw due to card count mismatch");
         const drawnCards = drawCards(expectedCount);
+        // Update store with the drawn cards so UI displays correctly
+        const setSelectedCards = useReadingStore.getState().setSelectedCards;
+        setSelectedCards(drawnCards);
         hasStartedReading.current = true;
         generateReading(intention || "", spreadType, drawnCards);
         return;
@@ -247,12 +262,12 @@ export default function ReadingScreen() {
                 {/* Card Display with Flip */}
                 <DelayedRevealCard
                   card={analysis.card}
-                  image={(selectedCards && selectedCards[index]?.image) || FALLBACK_IMAGE}
+                  image={getCardImage(index)}
                   isVisible={visibleCards[index] || false}
                   showName={false}
                   onPress={() => setPreviewCard({
                     name: analysis.card,
-                    image: (selectedCards && selectedCards[index]?.image) || FALLBACK_IMAGE
+                    image: getCardImage(index)
                   })}
                 />
 

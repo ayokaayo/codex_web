@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import {
     View,
     Modal,
@@ -19,6 +19,7 @@ import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { TarotCard } from "@/components/tarot/TarotCard";
 import { cardData } from "@/data/cards";
+import { COLORS, SIZES, FONTS } from "@/lib/theme/constants";
 import type { Card } from "@/lib/types/tarot";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -76,14 +77,20 @@ export function CardSelectionFlow({
     );
 
     // Track which cards have been selected (for duplicate prevention)
-    const selectedCardIds = new Set(
-        selectedCards.filter(Boolean).map((c) => c!.id)
+    const selectedCardIds = useMemo(
+        () => new Set(selectedCards.filter(Boolean).map((c) => c!.id)),
+        [selectedCards]
     );
+
+    // Track reveal animation state for selected card preview
+    const [isCardRevealed, setIsCardRevealed] = useState(false);
 
     // Go to a specific position
     const goToPosition = (index: number) => {
         Haptics.selectionAsync();
         setCurrentPosition(index);
+        // Reset reveal state for new position to trigger animation
+        setIsCardRevealed(false);
         if (selectedCards[index]) {
             setSelectionStep({ type: "selected" });
         } else {
@@ -152,8 +159,21 @@ export function CardSelectionFlow({
         const newSelectedCards = [...selectedCards];
         newSelectedCards[currentPosition] = card;
         setSelectedCards(newSelectedCards);
+
+        // Reset reveal state, then trigger animation after brief delay
+        setIsCardRevealed(false);
         setSelectionStep({ type: "selected" });
     };
+
+    // Trigger card reveal animation when entering "selected" state
+    useEffect(() => {
+        if (selectionStep.type === "selected" && !isCardRevealed) {
+            const timer = setTimeout(() => {
+                setIsCardRevealed(true);
+            }, 300); // Delay for card to mount face-down first
+            return () => clearTimeout(timer);
+        }
+    }, [selectionStep.type, isCardRevealed]);
 
     // Go to next position
     const handleNextPosition = () => {
@@ -360,7 +380,7 @@ export function CardSelectionFlow({
                 <TarotCard
                     name={card.name}
                     image={card.image}
-                    isRevealed={true}
+                    isRevealed={isCardRevealed}
                     size="medium"
                     showName={false}
                 />
@@ -394,8 +414,11 @@ export function CardSelectionFlow({
                     styles.arrowButton,
                     currentPosition > 0 ? styles.arrowButtonActive : styles.arrowButtonDisabled,
                 ]}
+                accessibilityLabel="Previous card position"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: currentPosition === 0 }}
             >
-                <ChevronLeft color="#C9A962" size={28} />
+                <ChevronLeft color={COLORS.gold} size={SIZES.iconMedium} />
             </Pressable>
 
             <View style={styles.spacer} />
@@ -418,6 +441,9 @@ export function CardSelectionFlow({
                                     isComplete && !isCurrent && styles.positionCircleComplete,
                                     !isComplete && !isCurrent && styles.positionCircleEmpty,
                                 ]}
+                                accessibilityLabel={`Card ${index + 1}${isComplete ? ', selected' : ''}`}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: isCurrent }}
                             >
                                 <Text
                                     style={[
@@ -451,8 +477,11 @@ export function CardSelectionFlow({
                     styles.arrowButton,
                     currentPosition < totalPositions - 1 ? styles.arrowButtonActive : styles.arrowButtonDisabled,
                 ]}
+                accessibilityLabel="Next card position"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: currentPosition >= totalPositions - 1 }}
             >
-                <ChevronRight color="#C9A962" size={28} />
+                <ChevronRight color={COLORS.gold} size={SIZES.iconMedium} />
             </Pressable>
         </View>
     );
@@ -466,15 +495,15 @@ export function CardSelectionFlow({
         >
             <View style={{
                 flex: 1,
-                backgroundColor: '#0A0A0F',
+                backgroundColor: COLORS.void,
                 paddingTop: insets.top,
             }}>
                 {/* Header - just close button */}
                 <View className="flex-row items-center justify-between px-4 py-2">
                     <Pressable onPress={handleClose} className="p-2">
-                        <X color="#C9A962" size={24} />
+                        <X color={COLORS.gold} size={SIZES.iconSmall} />
                     </Pressable>
-                    <View style={{ width: 40 }} />
+                    <View style={{ width: SIZES.positionCircle }} />
                 </View>
 
                 {/* Content */}
@@ -513,9 +542,9 @@ export function CardSelectionFlow({
                     >
                         <Text
                             style={{
-                                fontFamily: 'Cinzel-Bold',
+                                fontFamily: FONTS.cinzelBold,
                                 fontSize: 14,
-                                color: selectionStep.type === "choose-type" ? '#5A5A5A' : '#C9A962',
+                                color: selectionStep.type === "choose-type" ? COLORS.textMuted : COLORS.gold,
                                 letterSpacing: 1,
                             }}
                         >
@@ -567,21 +596,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        paddingVertical: SIZES.spacing.lg,
+        paddingHorizontal: SIZES.spacing.lg,
     },
     spacer: {
-        width: 16,
+        width: SIZES.spacing.lg,
     },
     arrowButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: SIZES.arrowButton,
+        height: SIZES.arrowButton,
+        borderRadius: SIZES.arrowButton / 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
     arrowButtonActive: {
-        backgroundColor: '#1A1A24',
+        backgroundColor: COLORS.surface,
         opacity: 1,
     },
     arrowButtonDisabled: {
@@ -592,37 +621,37 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     circleWrapper: {
-        marginLeft: 12,
+        marginLeft: SIZES.spacing.md,
     },
     positionCircle: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: SIZES.positionCircle,
+        height: SIZES.positionCircle,
+        borderRadius: SIZES.positionCircle / 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
     positionCircleCurrent: {
-        backgroundColor: '#C9A962',
+        backgroundColor: COLORS.gold,
     },
     positionCircleComplete: {
-        backgroundColor: 'rgba(201, 169, 98, 0.3)',
+        backgroundColor: COLORS.goldSemiTransparent,
         borderWidth: 1,
-        borderColor: '#C9A962',
+        borderColor: COLORS.gold,
     },
     positionCircleEmpty: {
-        backgroundColor: '#1A1A24',
+        backgroundColor: COLORS.surface,
     },
     positionText: {
-        fontFamily: 'Cinzel-Bold',
+        fontFamily: FONTS.cinzelBold,
         fontSize: 16,
     },
     positionTextCurrent: {
-        color: '#0A0A0F',
+        color: COLORS.void,
     },
     positionTextComplete: {
-        color: '#C9A962',
+        color: COLORS.gold,
     },
     positionTextEmpty: {
-        color: '#5A5A5A',
+        color: COLORS.textMuted,
     },
 });

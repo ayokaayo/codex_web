@@ -178,7 +178,7 @@ export default function HomeScreen() {
 
   // Handle Craft mode card selection complete
   const handleCraftCardsSelected = (cards: Card[]) => {
-    console.log("[HomeScreen] Craft cards selected:", cards.map(c => c.name));
+    if (__DEV__) console.log("[HomeScreen] Craft cards selected:", cards.map(c => c.name));
 
     // CRITICAL: Set cards BEFORE resetting to avoid race condition
     const setSelectedCards = useReadingStore.getState().setSelectedCards;
@@ -193,7 +193,7 @@ export default function HomeScreen() {
     store.setOracle(null);
     store.setError(null);
 
-    console.log("[HomeScreen] Store updated, selectedCards count:", store.selectedCards.length);
+    if (__DEV__) console.log("[HomeScreen] Store updated, selectedCards count:", store.selectedCards.length);
 
     // Unmount background immediately to stop animations (prevents Reanimated crash)
     setShowBackground(false);
@@ -392,7 +392,14 @@ export default function HomeScreen() {
                 <Button
                   variant="primary"
                   disabled={readingMode === "fate" && !isSpreadLocked && !intention.trim()}
-                  onPress={readingMode === "craft" ? () => setIsCardSelectionOpen(true) : handleDrawCards}
+                  onPress={readingMode === "craft" ? () => {
+                    if (!isProUser) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      router.push("/paywall");
+                      return;
+                    }
+                    setIsCardSelectionOpen(true);
+                  } : handleDrawCards}
                   textClassName="text-xl tracking-widest"
                 >
                   {isSpreadLocked
