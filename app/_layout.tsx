@@ -27,7 +27,12 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       if (fontsLoaded || fontError) {
-        await SplashScreen.hideAsync();
+        try {
+          await SplashScreen.hideAsync();
+        } catch (e) {
+          // Ignore error if splash screen is already hidden or not native
+          console.warn("SplashScreen hide error:", e);
+        }
         setAppIsReady(true);
       }
     }

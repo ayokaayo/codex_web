@@ -216,37 +216,37 @@ export default function HomeScreen() {
               <View className="flex-1" />
 
               {/* Spread Selection */}
-              <Animated.View entering={FadeInDown.delay(100).duration(500)} className="mb-6 px-4">
+              <Animated.View entering={FadeInDown.delay(100).duration(500)} className="mb-6">
                 <Text variant="label" className="mb-4 text-center text-xl font-cinzel-extrabold text-gold-bright tracking-widest leading-relaxed">
                   Select how many cards
                 </Text>
-                <View className="flex-row justify-between gap-4">
+                <View className="flex-row justify-between gap-3">
                   {spreadOptions.map((option) => (
                     <Pressable
                       key={option.type}
                       onPress={() => handleSpreadSelect(option.type)}
-                      className={`flex-1 h-32 rounded-2xl border items-center justify-center ${spreadType === option.type
+                      className={`flex-1 aspect-square rounded-2xl border items-center justify-center ${spreadType === option.type
                         ? "bg-surface border-gold"
                         : "bg-surface border-surface"
                         }`}
                     >
                       <Text
                         style={{ fontFamily: 'Cinzel-ExtraBold', fontVariant: ['tabular-nums'] }}
-                        className={`text-7xl text-center pt-2 ${spreadType === option.type ? "text-gold-bright" : "text-text-secondary opacity-50"
+                        className={`text-7xl text-center ${spreadType === option.type ? "text-gold-bright" : "text-text-secondary opacity-50"
                           }`}
                       >
                         {option.label}
                       </Text>
                       {/* Show padlock only if: not free tier AND (pro user OR free tier exhausted) */}
                       {!option.free && !isProUser && !canUseSpread(option.type) && (
-                        <View className="absolute top-2 right-2 bg-gold/20 p-1.5 rounded-full">
-                          <Lock size={12} color="#C9A962" />
+                        <View className="absolute bottom-2 right-2 bg-gold/20 p-1.5 rounded-full">
+                          <Lock size={14} color="#C9A962" />
                         </View>
                       )}
                       {/* Show remaining count for free users who still have readings */}
                       {!option.free && !isProUser && canUseSpread(option.type) && (
-                        <View className="absolute top-2 right-2 bg-gold/20 px-2 py-1 rounded-full">
-                          <Text className="text-gold text-xs font-sans-medium">
+                        <View className="absolute bottom-2 right-2 bg-gold/20 px-2 py-1 rounded-full">
+                          <Text style={{ fontFamily: 'Cinzel-Bold' }} className="text-gold text-sm">
                             {getRemainingReadings(option.type as "three" | "five")} left
                           </Text>
                         </View>

@@ -1,6 +1,5 @@
 import { Linking, Platform, Alert } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import * as Notifications from "expo-notifications";
 import * as Application from "expo-application";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -65,10 +64,14 @@ export async function getNotificationsEnabled(): Promise<boolean> {
 
 /**
  * Set notifications enabled preference and request permissions if enabling
+ * Uses dynamic import to avoid crash on Expo Go (SDK 53+ removed push notification support)
  */
 export async function setNotificationsEnabled(enabled: boolean): Promise<boolean> {
     try {
         if (enabled) {
+            // Dynamic import to prevent crash on Expo Go
+            const Notifications = await import("expo-notifications");
+
             // Request permission
             const { status: existingStatus } = await Notifications.getPermissionsAsync();
             let finalStatus = existingStatus;
@@ -95,7 +98,10 @@ export async function setNotificationsEnabled(enabled: boolean): Promise<boolean
         return true;
     } catch (error) {
         console.error("[Settings] Failed to update notification preference:", error);
-        return false;
+        // If notifications fail (e.g., Expo Go), still save the preference
+        // The actual push registration will happen in a dev build
+        await AsyncStorage.setItem(NOTIFICATION_ENABLED_KEY, enabled ? "true" : "false");
+        return true;
     }
 }
 
