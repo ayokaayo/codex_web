@@ -31,7 +31,6 @@ export default function HomeScreen() {
   const [intention, setIntention] = useState("");
   const [spreadType, setSpreadType] = useState<SpreadType>("single");
   const [readingMode, setReadingMode] = useState<ReadingMode>("fate");
-  const [isLoading, setIsLoading] = useState(false);
 
   // Controls whether background components are mounted (for performance)
   const [showBackground, setShowBackground] = useState(false);
@@ -148,24 +147,6 @@ export default function HomeScreen() {
     setReadingMode(mode);
   };
 
-  const navigateToReading = () => {
-    // Unmount background components to stop all animations (performance)
-    setShowBackground(false);
-
-    // Navigate immediately for snappy response
-    router.push({
-      pathname: "/reading/[id]",
-      params: {
-        id: Date.now().toString(),
-        intention,
-        spreadType,
-      },
-    });
-
-    // Reset loading state after navigation starts
-    setIsLoading(false);
-  };
-
   const handleDrawCards = async () => {
     // If spread is locked, go to paywall
     if (isSpreadLocked) {
@@ -176,48 +157,56 @@ export default function HomeScreen() {
 
     if (!intention.trim()) return;
 
-    // Reset previous reading state
+    // Reset previous reading state (clears selectedCards for Fate mode)
     resetReading();
 
-    setIsLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    // Fade out background before navigating
-    backgroundOpacity.value = withTiming(0, { duration: 600 }, (finished) => {
-      if (finished) {
-        runOnJS(navigateToReading)();
-      }
+    // Unmount background immediately to stop animations (prevents Reanimated crash)
+    setShowBackground(false);
+
+    // Navigate immediately (no animation callback to avoid Reanimated crash)
+    router.push({
+      pathname: "/reading/[id]",
+      params: {
+        id: Date.now().toString(),
+        intention,
+        spreadType,
+      },
     });
   };
 
   // Handle Craft mode card selection complete
   const handleCraftCardsSelected = (cards: Card[]) => {
-    // Reset previous reading state
-    resetReading();
+    console.log("[HomeScreen] Craft cards selected:", cards.map(c => c.name));
 
-    setIsLoading(true);
-
-    // Store selected cards in reading store for the reading screen
+    // CRITICAL: Set cards BEFORE resetting to avoid race condition
     const setSelectedCards = useReadingStore.getState().setSelectedCards;
     setSelectedCards(cards);
 
-    // Fade out background before navigating
-    backgroundOpacity.value = withTiming(0, { duration: 600 }, (finished) => {
-      if (finished) {
-        runOnJS(() => {
-          setShowBackground(false);
-          router.push({
-            pathname: "/reading/[id]",
-            params: {
-              id: Date.now().toString(),
-              intention,
-              spreadType,
-              readingMode: "craft",
-            },
-          });
-          setIsLoading(false);
-        })();
-      }
+    // Reset other reading state (but preserve selectedCards)
+    const store = useReadingStore.getState();
+    store.setStatus("idle");
+    store.setOpening(null);
+    store.setCardAnalyses(null);
+    store.setSynthesis(null);
+    store.setOracle(null);
+    store.setError(null);
+
+    console.log("[HomeScreen] Store updated, selectedCards count:", store.selectedCards.length);
+
+    // Unmount background immediately to stop animations (prevents Reanimated crash)
+    setShowBackground(false);
+
+    // Navigate immediately (no animation callback to avoid Reanimated crash)
+    router.push({
+      pathname: "/reading/[id]",
+      params: {
+        id: Date.now().toString(),
+        intention,
+        spreadType,
+        readingMode: "craft",
+      },
     });
   };
 
@@ -232,17 +221,18 @@ export default function HomeScreen() {
         </Animated.View>
       )}
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" pointerEvents="box-none">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1"
+          pointerEvents="box-none"
         >
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="flex-1 px-6 pt-6 pb-8">
+            <View className="flex-1 px-6 pt-6 pb-8" pointerEvents="box-none">
               {/* Header */}
               <Animated.View entering={FadeIn.duration(500)} className="flex-row justify-between items-center py-2 mb-2">
                 <Image
@@ -402,7 +392,6 @@ export default function HomeScreen() {
                 <Button
                   variant="primary"
                   disabled={readingMode === "fate" && !isSpreadLocked && !intention.trim()}
-                  loading={isLoading}
                   onPress={readingMode === "craft" ? () => setIsCardSelectionOpen(true) : handleDrawCards}
                   textClassName="text-xl tracking-widest"
                 >
@@ -418,16 +407,20 @@ export default function HomeScreen() {
         </KeyboardAvoidingView>
       </SafeAreaView>
 
-      {/* Settings Menu Modal */}
-      <MenuModal visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      {/* Settings Menu Modal - conditionally render to prevent Android blocking */}
+      {isMenuOpen && (
+        <MenuModal visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      )}
 
-      {/* Card Selection Modal (Craft Mode) */}
-      <CardSelectionFlow
-        visible={isCardSelectionOpen}
-        spreadType={spreadType}
-        onClose={() => setIsCardSelectionOpen(false)}
-        onComplete={handleCraftCardsSelected}
-      />
+      {/* Card Selection Modal (Craft Mode) - only render when open to prevent Android touch blocking */}
+      {isCardSelectionOpen && (
+        <CardSelectionFlow
+          visible={isCardSelectionOpen}
+          spreadType={spreadType}
+          onClose={() => setIsCardSelectionOpen(false)}
+          onComplete={handleCraftCardsSelected}
+        />
+      )}
     </View>
   );
 }

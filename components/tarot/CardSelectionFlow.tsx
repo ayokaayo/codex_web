@@ -5,6 +5,7 @@ import {
     Pressable,
     ScrollView,
     Dimensions,
+    StyleSheet,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -378,14 +379,7 @@ export function CardSelectionFlow({
 
     // Render progress navigation with arrows and numbered circles
     const renderProgressNavigation = () => (
-        <View style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingVertical: 16,
-            paddingHorizontal: 16,
-            gap: 16,
-        }}>
+        <View style={styles.navigationContainer} pointerEvents="box-none">
             {/* Left Arrow */}
             <Pressable
                 onPress={() => {
@@ -393,57 +387,55 @@ export function CardSelectionFlow({
                         goToPosition(currentPosition - 1);
                     }
                 }}
-                style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
-                    backgroundColor: currentPosition > 0 ? '#1A1A24' : 'transparent',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    opacity: currentPosition > 0 ? 1 : 0.3,
-                }}
+                disabled={currentPosition === 0}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                android_ripple={{ color: 'rgba(201, 169, 98, 0.2)' }}
+                style={[
+                    styles.arrowButton,
+                    currentPosition > 0 ? styles.arrowButtonActive : styles.arrowButtonDisabled,
+                ]}
             >
                 <ChevronLeft color="#C9A962" size={28} />
             </Pressable>
 
+            <View style={styles.spacer} />
+
             {/* Numbered Position Circles */}
-            <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={styles.circlesContainer}>
                 {positions.map((_, index) => {
                     const isCurrent = index === currentPosition;
                     const isComplete = selectedCards[index] !== null;
 
                     return (
-                        <Pressable
-                            key={index}
-                            onPress={() => goToPosition(index)}
-                            style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 20,
-                                backgroundColor: isCurrent
-                                    ? '#C9A962'
-                                    : isComplete
-                                        ? 'rgba(201, 169, 98, 0.3)'
-                                        : '#1A1A24',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                borderWidth: isComplete && !isCurrent ? 1 : 0,
-                                borderColor: '#C9A962',
-                            }}
-                        >
-                            <Text
-                                style={{
-                                    fontFamily: 'Cinzel-Bold',
-                                    fontSize: 16,
-                                    color: isCurrent ? '#0A0A0F' : isComplete ? '#C9A962' : '#5A5A5A',
-                                }}
+                        <View key={index} style={index > 0 ? styles.circleWrapper : undefined}>
+                            <Pressable
+                                onPress={() => goToPosition(index)}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                android_ripple={{ color: 'rgba(201, 169, 98, 0.2)' }}
+                                style={[
+                                    styles.positionCircle,
+                                    isCurrent && styles.positionCircleCurrent,
+                                    isComplete && !isCurrent && styles.positionCircleComplete,
+                                    !isComplete && !isCurrent && styles.positionCircleEmpty,
+                                ]}
                             >
-                                {index + 1}
-                            </Text>
-                        </Pressable>
+                                <Text
+                                    style={[
+                                        styles.positionText,
+                                        isCurrent && styles.positionTextCurrent,
+                                        isComplete && !isCurrent && styles.positionTextComplete,
+                                        !isComplete && !isCurrent && styles.positionTextEmpty,
+                                    ]}
+                                >
+                                    {index + 1}
+                                </Text>
+                            </Pressable>
+                        </View>
                     );
                 })}
             </View>
+
+            <View style={styles.spacer} />
 
             {/* Right Arrow */}
             <Pressable
@@ -452,15 +444,13 @@ export function CardSelectionFlow({
                         goToPosition(currentPosition + 1);
                     }
                 }}
-                style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
-                    backgroundColor: currentPosition < totalPositions - 1 ? '#1A1A24' : 'transparent',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    opacity: currentPosition < totalPositions - 1 ? 1 : 0.3,
-                }}
+                disabled={currentPosition >= totalPositions - 1}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                android_ripple={{ color: 'rgba(201, 169, 98, 0.2)' }}
+                style={[
+                    styles.arrowButton,
+                    currentPosition < totalPositions - 1 ? styles.arrowButtonActive : styles.arrowButtonDisabled,
+                ]}
             >
                 <ChevronRight color="#C9A962" size={28} />
             </Pressable>
@@ -488,14 +478,14 @@ export function CardSelectionFlow({
                 </View>
 
                 {/* Content */}
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1 }} pointerEvents="box-none">
                     {selectionStep.type === "choose-type" && renderTypeSelection()}
                     {selectionStep.type === "choose-suit" && renderSuitSelection()}
                     {selectionStep.type === "choose-card" && renderCardSelection()}
                     {selectionStep.type === "selected" && renderSelectedCard()}
                 </View>
 
-                {/* Progress Dots - always visible */}
+                {/* Progress Navigation - always visible */}
                 {renderProgressNavigation()}
 
                 {/* Footer Buttons */}
@@ -571,3 +561,68 @@ export function CardSelectionFlow({
         </Modal >
     );
 }
+
+const styles = StyleSheet.create({
+    navigationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+    },
+    spacer: {
+        width: 16,
+    },
+    arrowButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    arrowButtonActive: {
+        backgroundColor: '#1A1A24',
+        opacity: 1,
+    },
+    arrowButtonDisabled: {
+        backgroundColor: 'transparent',
+        opacity: 0.3,
+    },
+    circlesContainer: {
+        flexDirection: 'row',
+    },
+    circleWrapper: {
+        marginLeft: 12,
+    },
+    positionCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    positionCircleCurrent: {
+        backgroundColor: '#C9A962',
+    },
+    positionCircleComplete: {
+        backgroundColor: 'rgba(201, 169, 98, 0.3)',
+        borderWidth: 1,
+        borderColor: '#C9A962',
+    },
+    positionCircleEmpty: {
+        backgroundColor: '#1A1A24',
+    },
+    positionText: {
+        fontFamily: 'Cinzel-Bold',
+        fontSize: 16,
+    },
+    positionTextCurrent: {
+        color: '#0A0A0F',
+    },
+    positionTextComplete: {
+        color: '#C9A962',
+    },
+    positionTextEmpty: {
+        color: '#5A5A5A',
+    },
+});

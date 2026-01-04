@@ -82,6 +82,14 @@ export default function ReadingScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const hasStartedReading = useRef(false);
 
+  // Debug logging for iOS crash investigation
+  console.log("[ReadingScreen] Render:", {
+    readingMode,
+    spreadType,
+    selectedCardsCount: selectedCards.length,
+    hasStarted: hasStartedReading.current,
+  });
+
   // Scroll-based visibility tracking
   const [scrollY, setScrollY] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -111,26 +119,42 @@ export default function ReadingScreen() {
     // Guard: only run once
     if (hasStartedReading.current) return;
 
-    if (spreadType) {
-      hasStartedReading.current = true;
+    if (!spreadType) return;
 
-      // In Craft mode, cards are already pre-selected in the store
-      // In Fate mode, draw random cards
-      if (readingMode === "craft" && selectedCards.length > 0) {
-        // Use pre-selected cards from store
-        generateReading(intention || "", spreadType, selectedCards);
-      } else {
-        // Draw real cards from the deck (Fate mode)
-        const count = spreadType === "single" ? 1 : spreadType === "three" ? 3 : 5;
-        const drawnCards = drawCards(count);
-        generateReading(intention || "", spreadType, drawnCards);
+    // In Craft mode, wait for selectedCards to be populated in the store
+    if (readingMode === "craft") {
+      // Validate we have the correct number of cards
+      const expectedCount = spreadType === "single" ? 1 : spreadType === "three" ? 3 : 5;
+
+      if (selectedCards.length === 0) {
+        console.warn("[ReadingScreen] Craft mode but no selectedCards yet, waiting...");
+        return;
       }
+
+      if (selectedCards.length !== expectedCount) {
+        console.error(`[ReadingScreen] Card count mismatch: expected ${expectedCount}, got ${selectedCards.length}`);
+        // Fall back to drawing random cards
+        const drawnCards = drawCards(expectedCount);
+        hasStartedReading.current = true;
+        generateReading(intention || "", spreadType, drawnCards);
+        return;
+      }
+
+      // All good - use pre-selected cards
+      hasStartedReading.current = true;
+      generateReading(intention || "", spreadType, selectedCards);
+    } else {
+      // Fate mode - draw random cards
+      hasStartedReading.current = true;
+      const count = spreadType === "single" ? 1 : spreadType === "three" ? 3 : 5;
+      const drawnCards = drawCards(count);
+      generateReading(intention || "", spreadType, drawnCards);
     }
 
     return () => {
       // Only reset on unmount, not on every re-render
     };
-  }, [spreadType, readingMode]);
+  }, [spreadType, readingMode, selectedCards, intention, generateReading]);
 
   // Auto-scroll as content arrives
   useEffect(() => {
@@ -223,12 +247,12 @@ export default function ReadingScreen() {
                 {/* Card Display with Flip */}
                 <DelayedRevealCard
                   card={analysis.card}
-                  image={selectedCards[index]?.image || FALLBACK_IMAGE}
+                  image={(selectedCards && selectedCards[index]?.image) || FALLBACK_IMAGE}
                   isVisible={visibleCards[index] || false}
                   showName={false}
                   onPress={() => setPreviewCard({
                     name: analysis.card,
-                    image: selectedCards[index]?.image || FALLBACK_IMAGE
+                    image: (selectedCards && selectedCards[index]?.image) || FALLBACK_IMAGE
                   })}
                 />
 
