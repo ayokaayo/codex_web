@@ -1,0 +1,57 @@
+@import '@fontsource/cinzel/400.css';
+@import '@fontsource/cinzel/600.css';
+@import '@fontsource/cinzel/700.css';
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/500.css';
+@import '@fontsource/cormorant-garamond/600.css';
+@import '@fontsource/cormorant-garamond/400-italic.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-void text-text-primary antialiased font-garamond selection:bg-gold/30 overflow-x-hidden;
+    font-weight: 500;
+    /* Increased Garamond weight */
+  }
+
+  #root {
+    @apply min-h-screen flex flex-col;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-cinzel;
+    font-weight: 700;
+    /* Bold Cinzel */
+  }
+
+  /* Make all Cinzel usage bold */
+  .font-cinzel {
+    font-weight: 700;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-surface/30 backdrop-blur-md border border-white/10;
+  }
+
+  .glass-card {
+    @apply bg-surface/40 backdrop-blur-lg border border-white/5 rounded-2xl shadow-xl;
+  }
+
+  .glass-heavy {
+    @apply bg-surface/60 backdrop-blur-xl border border-white/20 shadow-xl;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 15px rgba(201, 169, 98, 0.5);
+  }
+}
