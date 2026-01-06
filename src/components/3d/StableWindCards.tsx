@@ -19,9 +19,9 @@ export const CARD_CONFIG = {
     DISPLAY_DURATION: 3.5,
 
     // NEW ANIMATION CONFIG
-    EXIT_DURATION: 3.0,          // Time to float UP
-    ENTER_DURATION: 3.0,         // Time to descend DOWN from top
-    REPLACEMENT_STAGGER: 3.0,
+    EXIT_DURATION: 1.5,          // Time to float UP (faster to avoid gaps)
+    ENTER_DURATION: 1.5,         // Time to descend DOWN from top (faster to avoid gaps)
+    REPLACEMENT_STAGGER: 3.5,    // Stagger > exit+enter to avoid 2 empty cards
 
     SPAWN_Y: 7.0,                // Enter from TOP (High above viewport)
     VANISH_Y: 7.0,               // Exit to TOP (High above viewport)
@@ -200,7 +200,7 @@ function AnimatedCard({ cardName, index, cardPool, scrollOffsetRef, isMobile }: 
                     s.phase = 'replacement_flip';
                     s.timer = 0;
                     s.positionY = CARD_CONFIG.FORMATION_Y;
-                    s.swayPhase = 0;
+                    // Don't reset swayPhase - let it continue smoothly
                     s.flipProgress = 0;
                 }
                 break;
@@ -304,7 +304,7 @@ export function StableWindCards() {
 
     useFrame(() => {
         const scrollY = window.scrollY || 0;
-        const scrollFactor = 0.003;
+        const scrollFactor = 0.01; // Increased from 0.003 - cards recede faster when scrolling
         scrollOffset.current = scrollY * scrollFactor;
     });
 

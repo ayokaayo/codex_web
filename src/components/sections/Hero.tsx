@@ -35,7 +35,7 @@ export function Hero() {
                     transition={{ delay: 1.2, duration: 0.6 }}
                     className="flex flex-col sm:flex-row gap-4 mt-2"
                 >
-                    <button className="group px-8 py-4 bg-gold text-bg-primary font-cinzel text-lg rounded-sm hover:bg-gold/90 transition-all cursor-pointer shadow-lg shadow-gold/20 hover:shadow-gold/40 hover:scale-105 min-w-[200px]">
+                    <button className="group px-8 py-4 bg-gold text-void font-cinzel text-lg rounded-sm hover:bg-gold/90 transition-all cursor-pointer shadow-lg shadow-gold/20 hover:shadow-gold/40 hover:scale-105 min-w-[200px]">
                         <span className="flex items-center justify-center gap-2">
                             Download App
                             <svg className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +53,7 @@ export function Hero() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.4, duration: 0.8 }}
-                    className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-2 text-text-muted font-garamond text-sm md:text-base"
+                    className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-2 text-text-primary font-garamond text-sm md:text-base"
                 >
                     <div className="flex items-center gap-2">
                         <div className="flex text-gold">
@@ -68,7 +68,7 @@ export function Hero() {
                     <div className="hidden sm:block w-px h-4 bg-text-muted/30" />
                     <span>100,000+ readings</span>
                     <div className="hidden sm:block w-px h-4 bg-text-muted/30" />
-                    <span className="text-gold font-semibold">Free to start</span>
+                    <span className="text-gold font-cinzel font-bold text-sm tracking-wider">Free to start</span>
                 </motion.div>
             </div>
 
