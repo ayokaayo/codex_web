@@ -8,8 +8,8 @@ import { Testimonials } from './components/sections/Testimonials';
 import { Footer } from './components/sections/Footer';
 import { StarField } from './components/3d/StarField';
 import { Nebula } from './components/3d/Nebula';
+import { StableWindCards } from './components/3d/StableWindCards';
 import { ShootingStars } from './components/ShootingStars';
-import { Loader } from '@react-three/drei';
 
 function App() {
   return (
@@ -17,29 +17,39 @@ function App() {
       <Layout>
         <Header />
         {/* Three.js 3D background */}
-        <div className="fixed inset-0 z-0">
-          <Canvas camera={{ position: [0, 0.3, 4.5], fov: 50 }} performance={{ min: 0.5 }}>
+        <div className="fixed inset-0 z-0" style={{ pointerEvents: 'none' }}>
+          <Canvas
+            camera={{ position: [0, 1, 4.5], fov: 50 }}
+            dpr={[1, 2]}
+            performance={{ min: 0.5 }}
+            frameloop="always"
+          >
             <color attach="background" args={['#0A0A0F']} />
             <ambientLight intensity={0.4} />
             <pointLight position={[10, 10, 10]} intensity={0.8} color="#C9A962" />
+
+            {/* Background elements - always rendered */}
+            <StarField />
+            <Nebula />
+
+            {/* Cards with Suspense - they track scroll internally */}
             <Suspense fallback={null}>
-              <StarField />
-              <Nebula />
-              {/* 3D Card component will be redesigned here */}
+              <StableWindCards />
             </Suspense>
           </Canvas>
         </div>
+
         {/* Canvas-based shooting stars overlay */}
         <ShootingStars />
+
         {/* Main content */}
-        <div className="relative z-10 w-full">
+        <div className="relative z-10 w-full" style={{ pointerEvents: 'auto' }}>
           <Hero />
           <Features />
           <Testimonials />
           <Footer />
         </div>
       </Layout>
-      <Loader />
     </>
   );
 }
