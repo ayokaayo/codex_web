@@ -1,11 +1,13 @@
+import { Link } from 'react-router-dom';
+
 export function Footer() {
     return (
         <footer className="relative py-6 px-4 border-t border-white/10 glass-heavy">
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex gap-6">
-                    <a href="#" className="font-garamond text-sm text-text-secondary hover:text-white transition-colors">Privacy Policy</a>
-                    <a href="#" className="font-garamond text-sm text-text-secondary hover:text-white transition-colors">Terms of Service</a>
-                    <a href="#" className="font-garamond text-sm text-text-secondary hover:text-white transition-colors">Support</a>
+                    <Link to="/privacy" className="font-garamond text-sm text-text-secondary hover:text-gold transition-colors">Privacy Policy</Link>
+                    <Link to="/delete-account" className="font-garamond text-sm text-text-secondary hover:text-gold transition-colors">Delete Account</Link>
+                    <a href="mailto:support@codextarot.app" className="font-garamond text-sm text-text-secondary hover:text-gold transition-colors">Support</a>
                 </div>
 
                 <div className="flex flex-col md:items-end items-center gap-1">
