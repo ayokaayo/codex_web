@@ -51,7 +51,7 @@ export function Galaxy({
         return { positions, colors };
     }, [count, radius, color]);
 
-    useFrame((state) => {
+    useFrame(() => {
         if (points.current) {
             // Slow rotation of the entire galaxy
             points.current.rotation.y += 0.001;
