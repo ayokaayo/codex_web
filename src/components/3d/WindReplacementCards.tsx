@@ -161,7 +161,7 @@ interface WindCardProps {
 }
 
 function WindCard({ index, geometry, backTexture, cardData, config }: WindCardProps) {
-    const frontTexture = useTexture(`${config.BASE_PATH}${cardData.cardName}.png`);
+    const frontTexture = useTexture(`${config.BASE_PATH}${cardData.cardName}.webp`);
     frontTexture.colorSpace = THREE.SRGBColorSpace;
 
     // Calculate position

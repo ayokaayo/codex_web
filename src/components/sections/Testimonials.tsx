@@ -1,89 +1,38 @@
 import { motion } from 'framer-motion';
 
-const testimonials = [
-    {
-        name: "Sarah M.",
-        role: "Daily User",
-        text: "The accuracy of the AI interpretations scares me sometimes. It's become an essential part of my morning routine.",
-        stars: 5
-    },
-    {
-        name: "Marcus K.",
-        role: "Tarot Enthusiast",
-        text: "Finally, a digital deck that respects the tradition while adding something new. The visual fidelity is incredible.",
-        stars: 5
-    },
-    {
-        name: "Elena R.",
-        role: "Beginner",
-        text: "I always wanted to learn Tarot but felt intimidated. Codex makes it accessible without dumbing it down.",
-        stars: 5
-    }
-];
-
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.15,
-            delayChildren: 0.2
-        }
-    }
-};
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 50, scale: 0.9 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: {
-            duration: 0.7,
-            ease: [0.25, 0.46, 0.45, 0.94] as const
-        }
-    }
-};
-
 export function Testimonials() {
     return (
-        <section className="relative py-32 px-4 bg-surface/20">
-            <div className="max-w-6xl mx-auto">
+        <section id="feedback" className="relative py-32 px-4 bg-surface/20">
+            <div className="max-w-3xl mx-auto text-center">
                 <motion.h2
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="font-cinzel text-3xl md:text-5xl text-center text-gold mb-20"
+                    className="font-cinzel text-3xl md:text-5xl text-gold mb-8"
                 >
-                    WHAT SEEKERS SAY
+                    BE AMONG THE FIRST
                 </motion.h2>
 
                 <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-10"
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                    className="bg-void/40 border border-white/5 p-10 md:p-14 rounded-sm"
                 >
-                    {testimonials.map((t, index) => (
-                        <motion.div
-                            key={index}
-                            variants={cardVariants}
-                            className="bg-void/40 border border-white/5 p-10 rounded-sm hover:border-gold/20 transition-all duration-300 hover:shadow-lg hover:shadow-gold/5"
-                        >
-                            <div className="flex text-gold mb-5 text-lg">
-                                {[...Array(t.stars)].map((_, i) => (
-                                    <span key={i}>★</span>
-                                ))}
-                            </div>
-                            <p className="font-garamond italic text-lg text-text-primary mb-8 leading-relaxed">"{t.text}"</p>
-                            <div>
-                                <h4 className="font-cinzel text-gold text-sm">{t.name}</h4>
-                                <span className="font-garamond text-text-muted text-xs uppercase tracking-wider">{t.role}</span>
-                            </div>
-                        </motion.div>
-                    ))}
+                    <p className="font-garamond text-xl md:text-2xl text-text-primary mb-8 leading-relaxed">
+                        We're just launching and would love your honest feedback. Test the app, share your experience, and help shape Codex Tarot.
+                    </p>
+                    <a
+                        href="mailto:feedback@codextarot.app?subject=Codex%20Tarot%20Feedback"
+                        className="inline-flex items-center gap-2 px-8 py-4 bg-transparent border-2 border-gold/40 text-gold font-cinzel text-lg rounded-sm hover:bg-gold/10 hover:border-gold/60 transition-all"
+                    >
+                        Share Your Experience
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </a>
                 </motion.div>
             </div>
         </section>

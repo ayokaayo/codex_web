@@ -87,7 +87,7 @@ export function useCardTextures(options: UseCardTexturesOptions = {}): UseCardTe
 
         return {
             cardNames: cards,
-            cardPaths: cards.map(name => `${basePath}${name}.png`),
+            cardPaths: cards.map(name => `${basePath}${name}.webp`),
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Empty deps = shuffle once on mount

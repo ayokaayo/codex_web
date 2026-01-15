@@ -102,7 +102,7 @@ const Card = memo(function Card({ cardName, index, flipProgress, positionY, opac
     opacity: number;
     swayPhase: number;
 }) {
-    const frontTexturePath = useMemo(() => `${CARD_CONFIG.BASE_PATH}${cardName}.png`, [cardName]);
+    const frontTexturePath = useMemo(() => `${CARD_CONFIG.BASE_PATH}${cardName}.webp`, [cardName]);
 
     // Load texture once per cardName
     const frontTexture = useLoader(THREE.TextureLoader, frontTexturePath);

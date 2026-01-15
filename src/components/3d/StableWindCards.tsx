@@ -37,7 +37,7 @@ export const CARD_CONFIG = {
     MOBILE_CARD_SPACING: 0.9,
 
     BASE_PATH: '/assets/cards/',
-    BACK_TEXTURE_PATH: '/assets/cards/back.png',
+    BACK_TEXTURE_PATH: '/assets/cards/back.webp',
 };
 
 // ============================================
@@ -69,7 +69,7 @@ function AnimatedCard({ cardName, index, cardPool, scrollOffsetRef, isMobile }: 
     const cardSpacing = isMobile ? CARD_CONFIG.MOBILE_CARD_SPACING : CARD_CONFIG.CARD_SPACING;
 
     // Load textures
-    const frontTexture = useTexture(`${CARD_CONFIG.BASE_PATH}${currentCard}.png`);
+    const frontTexture = useTexture(`${CARD_CONFIG.BASE_PATH}${currentCard}.webp`);
     const backTexture = useTexture(CARD_CONFIG.BACK_TEXTURE_PATH);
 
     frontTexture.colorSpace = THREE.SRGBColorSpace;
@@ -78,7 +78,7 @@ function AnimatedCard({ cardName, index, cardPool, scrollOffsetRef, isMobile }: 
     // Preload next texture when it's determined
     useEffect(() => {
         if (nextCard) {
-            useTexture.preload(`${CARD_CONFIG.BASE_PATH}${nextCard}.png`);
+            useTexture.preload(`${CARD_CONFIG.BASE_PATH}${nextCard}.webp`);
         }
     }, [nextCard]);
 

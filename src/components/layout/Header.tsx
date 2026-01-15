@@ -51,13 +51,18 @@ export function Header() {
                             </a>
                         </li>
                         <li>
-                            <a href="#testimonials" className="block font-cinzel text-gold hover:text-gold-bright transition-colors">
-                                Testimonials
+                            <a href="#feedback" className="block font-cinzel text-gold hover:text-gold-bright transition-colors">
+                                Feedback
                             </a>
                         </li>
                         <li>
-                            <a href="#download" className="block font-cinzel text-gold hover:text-gold-bright transition-colors">
-                                Download
+                            <a
+                                href="https://play.google.com/apps/testing/com.codextarot.app"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block font-cinzel text-gold hover:text-gold-bright transition-colors"
+                            >
+                                Get App
                             </a>
                         </li>
                     </ul>

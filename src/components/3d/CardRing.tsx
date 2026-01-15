@@ -175,7 +175,7 @@ export function CardRing() {
             {shuffledCards.map((cardName, index) => (
                 <RingCard
                     key={cardName}
-                    texturePath={`${RING_CONFIG.BASE_PATH}${cardName}.png`}
+                    texturePath={`${RING_CONFIG.BASE_PATH}${cardName}.webp`}
                     geometry={geometry}
                     angleOffset={cardAngles[index]}
                     currentRotation={rotation}
